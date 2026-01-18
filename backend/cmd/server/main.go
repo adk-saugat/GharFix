@@ -22,7 +22,7 @@ func main(){
 	defer config.Close()
 
 	// run migrations
-	 config.RunMigrations("../../migrations")
+	 config.RunMigrations("./migrations")
 
 	//server setup
 	server := gin.Default()

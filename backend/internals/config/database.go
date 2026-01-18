@@ -6,6 +6,8 @@ import (
 	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/pressly/goose/v3"
 )
 
 var Pool *pgxpool.Pool
@@ -24,6 +26,20 @@ func InitializeDatabase(){
 	if err := Pool.Ping(context.Background()); err != nil {
 		log.Fatalf("Could not connect to database.\n Error: %v", err)
 	}
+}
+
+func RunMigrations(migrationsDir string) {
+	db := stdlib.OpenDBFromPool(Pool)
+
+	if err := goose.SetDialect("postgres"); err != nil {
+		log.Fatal("Could not set goose dialect: ", err)
+	}
+
+	if err := goose.Up(db, migrationsDir); err != nil {
+		log.Fatal("Could not run migrations: ", err)
+	}
+
+	log.Println("Migrations completed successfully")
 }
 
 func Close() {

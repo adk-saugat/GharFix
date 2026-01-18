@@ -2,10 +2,10 @@ package main
 
 import (
 	"log"
-	"net/http"
 	"os"
 
 	"github.com/adk-saugat/kaamkhoj/backend/internals/config"
+	"github.com/adk-saugat/kaamkhoj/backend/internals/router"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -21,14 +21,13 @@ func main(){
 	config.InitializeDatabase()
 	defer config.Close()
 
+	// run migrations
+	 config.RunMigrations("../../migrations")
+
 	//server setup
 	server := gin.Default()
 
-	server.GET("/health", func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, gin.H{
-			"message": "Kaamkhoj backend is running!",
-		})
-	})
+	router.RegisterRoutes(server)
 
 	PORT := os.Getenv("PORT")
 	server.Run(":" + PORT)

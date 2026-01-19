@@ -3,8 +3,8 @@ package models
 import (
 	"context"
 
-	"github.com/adk-saugat/kaamkhoj/backend/internals/config"
-	"github.com/adk-saugat/kaamkhoj/backend/internals/utils"
+	"github.com/adk-saugat/gharfix/backend/internals/config"
+	"github.com/adk-saugat/gharfix/backend/internals/utils"
 )
 
 type User struct{

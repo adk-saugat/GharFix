@@ -1,4 +1,4 @@
-module github.com/adk-saugat/kaamkhoj/backend
+module github.com/adk-saugat/gharfix/backend
 
 go 1.24.5
 

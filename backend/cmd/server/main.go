@@ -4,8 +4,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/adk-saugat/kaamkhoj/backend/internals/config"
-	"github.com/adk-saugat/kaamkhoj/backend/internals/router"
+	"github.com/adk-saugat/gharfix/backend/internals/config"
+	"github.com/adk-saugat/gharfix/backend/internals/router"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )

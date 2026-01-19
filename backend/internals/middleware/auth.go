@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/adk-saugat/kaamkhoj/backend/internals/utils"
+	"github.com/adk-saugat/gharfix/backend/internals/utils"
 	"github.com/gin-gonic/gin"
 )
 

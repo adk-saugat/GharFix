@@ -3,8 +3,8 @@ package router
 import (
 	"net/http"
 
-	"github.com/adk-saugat/kaamkhoj/backend/internals/handlers"
-	"github.com/adk-saugat/kaamkhoj/backend/internals/middleware"
+	"github.com/adk-saugat/gharfix/backend/internals/handlers"
+	"github.com/adk-saugat/gharfix/backend/internals/middleware"
 	"github.com/gin-gonic/gin"
 )
 

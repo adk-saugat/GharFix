@@ -17,4 +17,6 @@ func RegisterRoutes(server *gin.Engine){
 
 	// auth routes
 	server.POST("/auth/register", handlers.RegisterUser)
+	server.POST("/auth/login", handlers.LoginUser)
+	server.GET("/auth/profile", handlers.AuthMiddleware(), handlers.GetProfile)
 }

@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"os"
 	"time"
 
@@ -9,14 +10,16 @@ import (
 
 type Claims struct {
 	UserID string `json:"user_id"`
+	Role   string `json:"role"`
 	jwt.RegisteredClaims
 }
 
-func GenerateToken(userID string) (string, error) {
+func GenerateToken(userID string, role string) (string, error) {
 	secret := os.Getenv("JWT_SECRET")
 
 	claims := Claims{
 		UserID: userID,
+		Role:   role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -27,23 +30,38 @@ func GenerateToken(userID string) (string, error) {
 	return token.SignedString([]byte(secret))
 }
 
-func ValidateToken(tokenString string) (*Claims, error) {
-	secret := os.Getenv("JWT_SECRET")
-	if secret == "" {
-		secret = "fallback-secret-change-this"
-	}
-
-	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(secret), nil
+func VerifyToken(token string) (string, string, error){
+	parsedToken, err := jwt.Parse(token, func(t *jwt.Token) (any, error) {
+		_, ok := t.Method.(*jwt.SigningMethodHMAC)
+		if !ok{
+			return nil, errors.New("unexpected signing method")
+		}
+		return []byte(os.Getenv("JWT_SECRET")), nil
 	})
 
 	if err != nil {
-		return nil, err
+		return "", "", errors.New("couldnot parse token")
 	}
 
-	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
-		return claims, nil
+	tokenIsValid := parsedToken.Valid
+	if !tokenIsValid{
+		return "", "", errors.New("invalid token")
 	}
 
-	return nil, jwt.ErrSignatureInvalid
+	claims, ok := parsedToken.Claims.(jwt.MapClaims)
+	if !ok {
+		return "", "", errors.New("invalid token claims")
+	}
+
+	userId, ok := claims["user_id"].(string)
+	if !ok {
+		return "", "", errors.New("userId not found in token claims")
+	}
+
+	userRole, ok := claims["role"].(string)
+	if !ok {
+		return "", "", errors.New("userRole not found in token claims")
+	}
+
+	return userId, userRole, nil
 }

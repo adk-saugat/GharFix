@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/adk-saugat/kaamkhoj/backend/internals/handlers"
+	"github.com/adk-saugat/kaamkhoj/backend/internals/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,5 +19,13 @@ func RegisterRoutes(server *gin.Engine){
 	// auth routes
 	server.POST("/auth/register", handlers.RegisterUser)
 	server.POST("/auth/login", handlers.LoginUser)
-	server.GET("/auth/profile", handlers.AuthMiddleware(), handlers.GetProfile)
+
+	// protected routes
+	protectedRoute := server.Group("/")
+	protectedRoute.Use(middleware.Authenticate)
+
+	// protected worker route
+	protectedWorkerRoute := protectedRoute.Group("/worker")
+	protectedWorkerRoute.Use(middleware.CheckWorker)
+	protectedWorkerRoute.POST("/profile", handlers.AddProfile)
 }

@@ -28,4 +28,5 @@ func RegisterRoutes(server *gin.Engine){
 	protectedWorkerRoute := protectedRoute.Group("/worker")
 	protectedWorkerRoute.Use(middleware.CheckWorker)
 	protectedWorkerRoute.POST("/profile", handlers.AddProfile)
+	protectedWorkerRoute.GET("/profile", handlers.GetProfile)
 }

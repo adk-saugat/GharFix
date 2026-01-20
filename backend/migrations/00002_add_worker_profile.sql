@@ -2,17 +2,17 @@
 -- +goose StatementBegin
 CREATE TABLE worker_profiles (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    userId UUID UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID UNIQUE REFERENCES users(id) ON DELETE CASCADE,
     skills TEXT[] NOT NULL,
-    hourlyRate NUMERIC(10,2),
+    hourly_rate NUMERIC(10,2),
 
-    completedJobs INT DEFAULT 0,
-    avgRating NUMERIC(2,1) DEFAULT 0.0,
+    completed_jobs INT DEFAULT 0,
+    avg_rating NUMERIC(2,1) DEFAULT 0.0,
 
-    verificationLevel VARCHAR(20) DEFAULT 'new'
-        CHECK (verificationLevel IN ('new', 'trusted', 'verified')),
+    verification_level VARCHAR(20) DEFAULT 'new'
+        CHECK (verification_level IN ('new', 'trusted', 'verified')),
 
-    createdAt TIMESTAMP DEFAULT NOW()
+    created_at TIMESTAMP DEFAULT NOW()
 );
 
 -- +goose StatementEnd

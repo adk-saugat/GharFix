@@ -33,9 +33,9 @@ type WorkerInfo struct{
 
 func (profile *WorkerProfiles) AddProfile() (*WorkerProfiles, error){
 	query := `
-		INSERT INTO worker_profiles (userId, skills, hourlyRate)
+		INSERT INTO worker_profiles (user_id, skills, hourly_rate)
 		VALUES ($1, $2, $3)
-		RETURNING id, completedJobs, avgRating, verificationLevel, createdAt
+		RETURNING id, completed_jobs, avg_rating, verification_level, created_at
 	`
 
 	row := config.Pool.QueryRow(context.Background(), query, profile.UserId, profile.Skills, profile.HourlyRate)
@@ -48,8 +48,8 @@ func (profile *WorkerProfiles) AddProfile() (*WorkerProfiles, error){
 
 func GetWorkerInfoById(workerId string) (*WorkerInfo, error){
 	query := `
-		SELECT users.id, username, email, phone, skills, hourlyRate, completedJobs, avgRating, verificationLevel, createdAt FROM users
-		JOIN worker_profiles ON users.id = worker_profiles.userId
+		SELECT users.id, username, email, phone, skills, hourly_rate, completed_jobs, avg_rating, verification_level, created_at FROM users
+		JOIN worker_profiles ON users.id = worker_profiles.user_id
 		WHERE users.id = $1
 	`
 

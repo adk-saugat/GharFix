@@ -1,4 +1,5 @@
 import { Stack } from "expo-router";
+import "../global.css";
 import { StatusBar } from "react-native";
 
 export default function RootLayout() {
@@ -6,14 +7,9 @@ export default function RootLayout() {
     <>
       <StatusBar barStyle="dark-content" />
       <Stack>
-        <Stack.Screen
-          name="index"
-          options={{ title: "GharFix", headerShown: false }}
-        />
-        <Stack.Screen
-          name="(auth)"
-          options={{ title: "Login", headerShown: false }}
-        />
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        <Stack.Screen name="customer" options={{ headerShown: false }} />
       </Stack>
     </>
   );

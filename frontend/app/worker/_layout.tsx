@@ -2,7 +2,7 @@ import React from "react";
 import { Tabs } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
-const CustomerLayout = () => {
+const WorkerLayout = () => {
   return (
     <Tabs
       screenOptions={{
@@ -38,12 +38,12 @@ const CustomerLayout = () => {
         }}
       />
       <Tabs.Screen
-        name="requestService"
+        name="services"
         options={{
-          title: "Request",
+          title: "Services",
           tabBarIcon: ({ focused }) => (
             <Ionicons
-              name={focused ? "add-circle" : "add-circle-outline"}
+              name={focused ? "briefcase" : "briefcase-outline"}
               size={24}
               color={focused ? "#000000" : "#9CA3AF"}
             />
@@ -67,4 +67,4 @@ const CustomerLayout = () => {
   );
 };
 
-export default CustomerLayout;
+export default WorkerLayout;

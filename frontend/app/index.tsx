@@ -5,9 +5,6 @@ import { useRouter } from "expo-router";
 const Home = () => {
   const route = useRouter();
 
-  const handleLoginPress = () => route.push("/login");
-  const handleRegisterPress = () => route.push("/register");
-
   return (
     <View className="flex-1 bg-white">
       <View className="flex-1 justify-center items-center px-6">
@@ -16,10 +13,9 @@ const Home = () => {
           <Text className="text-xl text-gray-600">Fixing homes, locally!</Text>
         </View>
 
-        {/* Buttons */}
         <View className="w-full">
           <TouchableOpacity
-            onPress={handleLoginPress}
+            onPress={() => route.push("/login")}
             className="bg-black py-4 rounded-lg mb-4"
           >
             <Text className="text-white text-base font-semibold text-center">
@@ -28,7 +24,7 @@ const Home = () => {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={handleRegisterPress}
+            onPress={() => route.push("/register")}
             className="border border-gray-400 py-4 rounded-lg"
           >
             <Text className="text-black text-base font-semibold text-center">

@@ -5,8 +5,10 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { registerCustomer, registerWorker } from "../../api/auth";
 
 const AVAILABLE_SKILLS = [
   "Plumbing",
@@ -28,9 +30,26 @@ export default function GharfixRegister() {
   const [hourlyRate, setHourlyRate] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [showSkillsDropdown, setShowSkillsDropdown] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const router = useRouter();
 
-  const handleLoginPress = () => router.push("/login");
+  async function handleRegister() {
+    if (!name.trim() || !email.trim() || !password)
+      return setError("Name, email and password are required.");
+    setError("");
+    setLoading(true);
+    try {
+      const payload = { username: name.trim(), email: email.trim(), password, phone: phone.trim() || undefined };
+      if (userType === "customer") await registerCustomer(payload);
+      else await registerWorker(payload);
+      router.replace("/login");
+    } catch (e) {
+      setError((e as Error)?.message ?? "Registration failed.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const toggleSkill = (skill: string) => {
     if (selectedSkills.includes(skill)) {
@@ -126,6 +145,10 @@ export default function GharfixRegister() {
               secureTextEntry
             />
 
+            {error ? (
+              <Text className="text-red-600 text-sm mb-4">{error}</Text>
+            ) : null}
+
             {/* Worker-specific fields */}
             {userType === "worker" && (
               <>
@@ -186,17 +209,25 @@ export default function GharfixRegister() {
               </>
             )}
 
-            <TouchableOpacity className="bg-black py-4 rounded-lg w-full mb-4">
-              <Text className="text-white text-base text-center font-semibold">
-                Register
-              </Text>
+            <TouchableOpacity
+              className="bg-black py-4 rounded-lg w-full mb-4 disabled:opacity-60"
+              onPress={handleRegister}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <Text className="text-white text-base text-center font-semibold">
+                  Register
+                </Text>
+              )}
             </TouchableOpacity>
 
             <View className="flex-row justify-center">
               <Text className="text-gray-600 text-base">
                 Already have an account?{" "}
               </Text>
-              <TouchableOpacity onPress={handleLoginPress}>
+              <TouchableOpacity onPress={() => router.push("/login")}>
                 <Text className="text-black text-base font-semibold">
                   Log In
                 </Text>

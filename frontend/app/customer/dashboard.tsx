@@ -16,7 +16,10 @@ export default function CustomerDashboard() {
       <ScrollView className="flex-1">
         <View className="px-6 py-2">
           {/* Request Service Button */}
-          <TouchableOpacity className="bg-black py-4 px-6 rounded-lg mb-6">
+          <TouchableOpacity
+            className="bg-black py-4 px-6 rounded-lg mb-6"
+            onPress={() => router.push("/customer/requestService")}
+          >
             <Text className="text-white text-xl font-semibold text-center">
               Request Service
             </Text>

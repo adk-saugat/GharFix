@@ -30,3 +30,17 @@ func CreateJob(ctx *gin.Context){
 		"job": job,
 	})
 }
+
+func GetAllJobs(ctx *gin.Context){
+	jobs, err := models.FetchAllJobs()
+	if err != nil{
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Couldnot fetch jobs.",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"jobs": jobs,
+	})
+}

@@ -65,43 +65,39 @@ export default function WorkerDashboard() {
             <Text className="text-gray-500 mb-6">No new requests</Text>
           ) : (
             displayJobs.map((job) => (
-              <Card key={job.id} className="mb-3">
-                <View className="flex-row justify-between items-start mb-2">
-                  <Text className="text-xl font-semibold text-black flex-1">
-                    {job.title}
+              <TouchableOpacity
+                key={job.id}
+                onPress={() => router.push(`/worker/job/${job.id}`)}
+                activeOpacity={0.85}
+              >
+                <Card className="mb-3">
+                  <View className="flex-row justify-between items-start mb-2">
+                    <Text className="text-xl font-semibold text-black flex-1">
+                      {job.title}
+                    </Text>
+                    <View className="bg-blue-100 px-3 py-1 rounded">
+                      <Text className="text-blue-800 text-sm font-semibold">
+                        {categoryLabel(job.status || "New")}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text className="text-base text-gray-600 mb-1">
+                    Category: {categoryLabel(job.category ?? "")}
                   </Text>
-                  <View className="bg-blue-100 px-3 py-1 rounded">
-                    <Text className="text-blue-800 text-sm font-semibold">
-                      {categoryLabel(job.status || "New")}
+                  <Text className="text-base text-gray-600 mb-2">
+                    Customer: {job.username}
+                  </Text>
+                  <View className="flex-row justify-end w-full">
+                    <Text className="text-base font-semibold text-gray-500">
+                      View details →
                     </Text>
                   </View>
-                </View>
-                <Text className="text-base text-gray-600 mb-1">
-                  Category: {categoryLabel(job.category ?? "")}
-                </Text>
-                <Text className="text-base text-gray-600 mb-1">
-                  Customer: {job.username}
-                </Text>
-                <Text className="text-base text-gray-600 mb-3">
-                  Address: {job.address}
-                </Text>
-                <View className="flex-row gap-3">
-                  <TouchableOpacity className="flex-1 bg-black py-2 rounded-lg">
-                    <Text className="text-white text-base font-semibold text-center">
-                      Accept
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity className="flex-1 border border-gray-400 py-2 rounded-lg">
-                    <Text className="text-black text-base font-semibold text-center">
-                      Decline
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </Card>
+                </Card>
+              </TouchableOpacity>
             ))
           )}
 
-          {!loading && displayJobs.length > 0 && <View className="mb-6" />}
+          {displayJobs.length > 0 && <View className="mb-6" />}
 
           <Text className="text-2xl font-bold text-black mb-3">
             Active Jobs

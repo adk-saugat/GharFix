@@ -7,7 +7,8 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { getUser, clearAuth } from "@/api/storage";
+import { getCustomerProfile, type CustomerProfile } from "@/api/customer";
+import { clearAuth } from "@/api/storage";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { Card } from "@/components/Card";
 import { DetailRow } from "@/components/DetailRow";
@@ -15,20 +16,15 @@ import { PrimaryButton } from "@/components/PrimaryButton";
 
 export default function CustomerProfile() {
   const router = useRouter();
-  const [user, setUser] = useState<{
-    id?: string;
-    username?: string;
-    email?: string;
-    phone?: string;
-    role?: string;
-  } | null>(null);
+  const [user, setUser] = useState<CustomerProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    getUser().then((u) => {
-      setUser(u ?? null);
-      setLoading(false);
-    });
+    getCustomerProfile()
+      .then(setUser)
+      .catch((e) => setError((e as Error).message))
+      .finally(() => setLoading(false));
   }, []);
 
   async function handleLogout() {
@@ -45,8 +41,25 @@ export default function CustomerProfile() {
     );
   }
 
-  const displayName = user?.username ?? "User";
-  const role = user?.role ?? "customer";
+  if (error) {
+    return (
+      <View className="flex-1 bg-gray-50 justify-center items-center px-6">
+        <Text className="text-red-600 text-center mb-4 text-base">{error}</Text>
+        <PrimaryButton onPress={() => router.replace("/")}>
+          Go home
+        </PrimaryButton>
+      </View>
+    );
+  }
+
+  if (!user) return null;
+
+  const displayName = user.username ?? "User";
+  const role = user.role ?? "customer";
+  const phoneDisplay =
+    user.phone != null && user.phone.trim() !== ""
+      ? user.phone
+      : "Not provided";
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -91,7 +104,7 @@ export default function CustomerProfile() {
           <Card className="mb-6 p-0 overflow-hidden">
             <DetailRow label="Username" value={displayName} />
             <DetailRow label="Email" value={user?.email ?? "—"} />
-            <DetailRow label="Phone" value={user?.phone ?? "Not provided"} />
+            <DetailRow label="Phone" value={phoneDisplay} />
             <DetailRow label="Role" value={role} last />
           </Card>
 

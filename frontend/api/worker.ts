@@ -44,5 +44,22 @@ export async function getJobs(): Promise<JobItem[]> {
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error ?? "Failed to load jobs");
-  return data.jobs ?? [];
+  const list = data.jobs ?? [];
+  return list.map((j: Record<string, unknown>) => ({
+    id: String(j.id ?? ""),
+    customerId: String(j.customerId ?? ""),
+    username: String(j.username ?? ""),
+    phone: String(j.phone ?? ""),
+    title: String(j.title ?? ""),
+    description: String(j.description ?? ""),
+    category: String(j.category ?? ""),
+    address: String(j.address ?? ""),
+    status: String(j.status ?? "open"),
+    createdAt: typeof j.createdAt === "string" ? j.createdAt : "",
+  }));
+}
+
+export async function getJob(id: string): Promise<JobItem | null> {
+  const jobs = await getJobs();
+  return jobs.find((j) => j.id === id) ?? null;
 }

@@ -37,7 +37,7 @@ export default function GharfixRegister() {
       else await registerWorker(payload);
       router.replace("/login");
     } catch (e) {
-      setError((e as Error)?.message ?? "Registration failed.");
+      setError((e as Error).message ?? "Registration failed.");
     } finally {
       setLoading(false);
     }
@@ -53,29 +53,52 @@ export default function GharfixRegister() {
 
   return (
     <ScrollView
-      className="flex-1 bg-white"
-      contentContainerStyle={{ flexGrow: 1 }}
+      className="flex-1 bg-gray-50"
+      contentContainerStyle={{ paddingBottom: 32 }}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
     >
-      <View className="flex-1 justify-center py-12">
-        <View className="px-6">
-          <View className="w-full mx-auto">
-            <Text className="text-5xl font-bold text-black mb-12">
-              Register
-            </Text>
+      <View className="items-center px-6 pt-24 pb-6 w-full">
+        <View className="w-full max-w-md">
+          <Text className="text-5xl font-bold text-black mb-2 text-center">
+            Register
+          </Text>
+          <Text className="text-lg text-gray-500 mb-1 text-center">
+            Create your Gharfix account
+          </Text>
+          <Text className="text-base text-gray-400 text-center">
+            Join as a customer to request home services, or as a worker to find
+            local jobs and grow your business.
+          </Text>
+        </View>
+      </View>
 
-            {/* User Type Selection */}
-            <View className="flex-row mb-6 gap-3">
+      <View className="items-center px-6 pb-12 w-full">
+        <View className="w-full max-w-md self-stretch">
+          <View className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+            <Text className="text-sm font-medium text-gray-500 mb-3">
+              I want to
+            </Text>
+            <View className="flex-row mb-5 gap-3">
               <TouchableOpacity
                 onPress={() => setUserType("customer")}
-                className={`flex-1 py-3 rounded-lg border-2 ${
+                className={`flex-1 py-3 rounded-xl border-2 ${
                   userType === "customer"
                     ? "bg-black border-black"
-                    : "bg-white border-gray-400"
+                    : "bg-white border-gray-300"
                 }`}
+                activeOpacity={0.85}
               >
                 <Text
                   className={`text-base text-center font-semibold ${
                     userType === "customer" ? "text-white" : "text-black"
+                  }`}
+                >
+                  Request services
+                </Text>
+                <Text
+                  className={`text-xs text-center mt-0.5 ${
+                    userType === "customer" ? "text-gray-300" : "text-gray-400"
                   }`}
                 >
                   Customer
@@ -84,15 +107,23 @@ export default function GharfixRegister() {
 
               <TouchableOpacity
                 onPress={() => setUserType("worker")}
-                className={`flex-1 py-3 rounded-lg border-2 ${
+                className={`flex-1 py-3 rounded-xl border-2 ${
                   userType === "worker"
                     ? "bg-black border-black"
-                    : "bg-white border-gray-400"
+                    : "bg-white border-gray-300"
                 }`}
+                activeOpacity={0.85}
               >
                 <Text
                   className={`text-base text-center font-semibold ${
                     userType === "worker" ? "text-white" : "text-black"
+                  }`}
+                >
+                  Offer services
+                </Text>
+                <Text
+                  className={`text-xs text-center mt-0.5 ${
+                    userType === "worker" ? "text-gray-300" : "text-gray-400"
                   }`}
                 >
                   Worker
@@ -100,9 +131,12 @@ export default function GharfixRegister() {
               </TouchableOpacity>
             </View>
 
+            <Text className="text-sm font-medium text-gray-500 mb-3">
+              Your details
+            </Text>
             <Input
               className="mb-4"
-              placeholder="Name"
+              placeholder="Full name"
               value={name}
               onChangeText={setName}
               autoCapitalize="words"
@@ -119,7 +153,7 @@ export default function GharfixRegister() {
 
             <Input
               className="mb-4"
-              placeholder="Phone Number"
+              placeholder="Phone (optional)"
               value={phone}
               onChangeText={setPhone}
               keyboardType="phone-pad"
@@ -146,22 +180,11 @@ export default function GharfixRegister() {
               </TouchableOpacity>
             </View>
 
-            {error ? (
-              <Text className="text-red-600 text-sm mb-4">{error}</Text>
-            ) : null}
-
-            {/* Worker-specific fields */}
             {userType === "worker" && (
               <>
-                <Input
-                  className="mb-4"
-                  placeholder="Hourly Rate ($)"
-                  value={hourlyRate}
-                  onChangeText={setHourlyRate}
-                  keyboardType="numeric"
-                />
-
-                {/* Skills Dropdown */}
+                <Text className="text-sm font-medium text-gray-500 mb-3 mt-2">
+                  Worker info
+                </Text>
                 <View className="mb-4 relative">
                   <TouchableOpacity
                     onPress={() => setShowSkillsDropdown(!showSkillsDropdown)}
@@ -170,13 +193,13 @@ export default function GharfixRegister() {
                     <Text className="text-xl text-gray-600">
                       {selectedSkills.length > 0
                         ? selectedSkills.map(categoryLabel).join(", ")
-                        : "Select Skills"}
+                        : "Select skills you offer"}
                     </Text>
                   </TouchableOpacity>
 
                   {showSkillsDropdown && (
                     <View
-                      className="border border-gray-400 rounded-lg mt-2 bg-white absolute top-16 left-0 right-0 z-10"
+                      className="border border-gray-200 rounded-xl mt-2 bg-white absolute top-16 left-0 right-0 z-10"
                       style={{ maxHeight: 180 }}
                     >
                       <ScrollView nestedScrollEnabled>
@@ -184,10 +207,8 @@ export default function GharfixRegister() {
                           <TouchableOpacity
                             key={skill}
                             onPress={() => toggleSkill(skill)}
-                            className={`px-4 py-3 border-b border-gray-200 ${
-                              selectedSkills.includes(skill)
-                                ? "bg-gray-100"
-                                : ""
+                            className={`px-4 py-3 border-b border-gray-100 ${
+                              selectedSkills.includes(skill) ? "bg-gray-50" : ""
                             }`}
                           >
                             <Text
@@ -206,25 +227,37 @@ export default function GharfixRegister() {
                     </View>
                   )}
                 </View>
+
+                <Input
+                  className="mb-4"
+                  placeholder="Hourly rate ($)"
+                  value={hourlyRate}
+                  onChangeText={setHourlyRate}
+                  keyboardType="numeric"
+                />
               </>
             )}
+
+            {error ? (
+              <Text className="text-red-600 text-sm mb-4">{error}</Text>
+            ) : null}
 
             <PrimaryButton
               onPress={handleRegister}
               disabled={loading}
               loading={loading}
-              className="mb-4"
+              className="mb-5"
             >
-              Register
+              Create account
             </PrimaryButton>
 
-            <View className="flex-row justify-center">
-              <Text className="text-gray-600 text-base">
+            <View className="flex-row justify-center flex-wrap">
+              <Text className="text-gray-500 text-base">
                 Already have an account?{" "}
               </Text>
               <TouchableOpacity onPress={() => router.push("/login")}>
                 <Text className="text-black text-base font-semibold">
-                  Log In
+                  Log in
                 </Text>
               </TouchableOpacity>
             </View>

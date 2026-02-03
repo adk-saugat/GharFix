@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-} from "react-native";
+import { View, Text, ScrollView, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
-import { getWorkerProfile } from "../../api/worker";
-import { clearAuth } from "../../api/storage";
+import { getWorkerProfile } from "@/api/worker";
+import { clearAuth } from "@/api/storage";
+import { ScreenHeader } from "@/components/ScreenHeader";
+import { Card } from "@/components/Card";
+import { DetailRow } from "@/components/DetailRow";
+import { PrimaryButton } from "@/components/PrimaryButton";
 
 type Worker = {
   id: string;
@@ -22,13 +20,6 @@ type Worker = {
   verificationLevel: string;
   createdAt: string;
 };
-
-const Row = ({ label, value }: { label: string; value: string | number }) => (
-  <View className="px-4 py-4 border-b border-gray-300">
-    <Text className="text-sm text-gray-500 mb-1">{label}</Text>
-    <Text className="text-lg text-black">{value}</Text>
-  </View>
-);
 
 export default function WorkerProfile() {
   const [worker, setWorker] = useState<Worker | null>(null);
@@ -60,12 +51,9 @@ export default function WorkerProfile() {
     return (
       <View className="flex-1 bg-white justify-center px-6">
         <Text className="text-red-600 text-center mb-4">{error}</Text>
-        <TouchableOpacity
-          onPress={() => router.replace("/")}
-          className="bg-black py-4 rounded-lg"
-        >
-          <Text className="text-white text-center font-semibold">Go Home</Text>
-        </TouchableOpacity>
+        <PrimaryButton onPress={() => router.replace("/")}>
+          Go Home
+        </PrimaryButton>
       </View>
     );
   }
@@ -74,9 +62,7 @@ export default function WorkerProfile() {
 
   return (
     <View className="flex-1 bg-white">
-      <View className="px-6 pt-24 pb-4">
-        <Text className="text-4xl font-bold text-black">Profile</Text>
-      </View>
+      <ScreenHeader title="Profile" />
 
       <ScrollView className="flex-1">
         <View className="px-6 py-4">
@@ -95,39 +81,34 @@ export default function WorkerProfile() {
           <Text className="text-lg font-semibold text-gray-700 mb-3">
             Account Details
           </Text>
-          <View className="border border-gray-300 rounded-lg overflow-hidden mb-4">
-            <Row label="Username" value={worker.username} />
-            <Row label="Email" value={worker.email} />
-            <Row label="Phone" value={worker.phone || "Not provided"} />
-          </View>
+          <Card className="mb-4 overflow-hidden">
+            <DetailRow label="Username" value={worker.username} />
+            <DetailRow label="Email" value={worker.email} />
+            <DetailRow label="Phone" value={worker.phone || "Not provided"} />
+          </Card>
 
           <Text className="text-lg font-semibold text-gray-700 mb-3">
             Worker Details
           </Text>
-          <View className="border border-gray-300 rounded-lg overflow-hidden mb-6">
-            <Row label="Skills" value={worker.skills?.join(", ") || "None"} />
-            <Row label="Hourly Rate" value={`$${worker.hourlyRate}`} />
-            <Row label="Completed Jobs" value={worker.completedJobs} />
-            <Row
+          <Card className="mb-6 overflow-hidden">
+            <DetailRow
+              label="Skills"
+              value={worker.skills?.join(", ") || "None"}
+            />
+            <DetailRow label="Hourly Rate" value={`$${worker.hourlyRate}`} />
+            <DetailRow label="Completed Jobs" value={worker.completedJobs} />
+            <DetailRow
               label="Average Rating"
               value={worker.avgRating?.toFixed(1) || "—"}
             />
-            <View className="px-4 py-4">
-              <Text className="text-sm text-gray-500 mb-1">Verification</Text>
-              <Text className="text-lg text-black capitalize">
-                {worker.verificationLevel || "—"}
-              </Text>
-            </View>
-          </View>
+            <DetailRow
+              label="Verification"
+              value={worker.verificationLevel || "—"}
+              last
+            />
+          </Card>
 
-          <TouchableOpacity
-            onPress={handleLogout}
-            className="bg-black py-4 rounded-lg w-full"
-          >
-            <Text className="text-white text-lg font-semibold text-center">
-              Log Out
-            </Text>
-          </TouchableOpacity>
+          <PrimaryButton onPress={handleLogout}>Log Out</PrimaryButton>
         </View>
       </ScrollView>
     </View>

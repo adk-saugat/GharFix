@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = "http://172.20.10.5:8080";
 
 export async function registerCustomer(payload: {
   username: string;

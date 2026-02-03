@@ -1,55 +1,78 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-} from "react-native";
-
-const CATEGORIES = [
-  "Plumbing",
-  "Electrical",
-  "Carpentry",
-  "Painting",
-  "Masonry",
-  "Cleaning",
-  "General Handyman",
-];
+import { View, Text, TouchableOpacity, ScrollView, Alert } from "react-native";
+import { useRouter } from "expo-router";
+import { createJob } from "@/api/jobs";
+import { getUser } from "@/api/storage";
+import { JOB_CATEGORIES, categoryLabel } from "@/constants/categories";
+import { Input } from "@/components/Input";
+import { PrimaryButton } from "@/components/PrimaryButton";
+import { ScreenHeader } from "@/components/ScreenHeader";
 
 export default function RequestService() {
+  const router = useRouter();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<string | null>(null);
   const [address, setAddress] = useState("");
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = () => {
-    // handle submission
-  };
+  async function handleSubmit() {
+    if (!title.trim() || !description.trim() || !category || !address.trim()) {
+      setError("Please fill in all fields.");
+      return;
+    }
+    const user = await getUser();
+    if (!user?.id) {
+      setError("You must be logged in to request a service.");
+      return;
+    }
+    setError("");
+    setLoading(true);
+    try {
+      await createJob({
+        customerId: user.id,
+        title: title.trim(),
+        description: description.trim(),
+        category,
+        address: address.trim(),
+      });
+      Alert.alert("Request added", "Your service request has been submitted.", [
+        {
+          text: "OK",
+          onPress: () => {
+            setTitle("");
+            setDescription("");
+            setCategory(null);
+            setAddress("");
+            router.replace("/customer/dashboard");
+          },
+        },
+      ]);
+    } catch (e) {
+      setError((e as Error).message ?? "Failed to submit request.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <View className="flex-1 bg-white">
-      {/* Header */}
-      <View className="px-6 pt-28 pb-4">
-        <Text className="text-4xl font-bold text-black">Request Service</Text>
-      </View>
+      <ScreenHeader title="Request Service" className="pt-28" />
 
       <ScrollView className="flex-1">
         <View className="px-6 py-4">
-          {/* Title */}
           <Text className="text-lg font-semibold text-gray-700 mb-2">
             Title
           </Text>
-          <TextInput
-            className="border border-gray-400 px-4 rounded-lg mb-5 text-xl text-black w-full h-14"
+          <Input
+            className="mb-5"
             placeholder="e.g. Fix kitchen sink"
-            placeholderTextColor="#9CA3AF"
             value={title}
             onChangeText={setTitle}
           />
 
-          {/* Category */}
           <Text className="text-lg font-semibold text-gray-700 mb-2">
             Category
           </Text>
@@ -61,7 +84,7 @@ export default function RequestService() {
               <Text
                 className={`text-xl ${category ? "text-black" : "text-gray-400"}`}
               >
-                {category ?? "Select a category"}
+                {category ? categoryLabel(category) : "Select a category"}
               </Text>
             </TouchableOpacity>
 
@@ -71,7 +94,7 @@ export default function RequestService() {
                 style={{ maxHeight: 180 }}
               >
                 <ScrollView nestedScrollEnabled>
-                  {CATEGORIES.map((cat) => (
+                  {JOB_CATEGORIES.map((cat) => (
                     <TouchableOpacity
                       key={cat}
                       onPress={() => {
@@ -90,7 +113,7 @@ export default function RequestService() {
                         }`}
                       >
                         {category === cat ? "✓ " : ""}
-                        {cat}
+                        {categoryLabel(cat)}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -99,42 +122,40 @@ export default function RequestService() {
             )}
           </View>
 
-          {/* Description */}
           <Text className="text-lg font-semibold text-gray-700 mb-2">
             Description
           </Text>
-          <TextInput
-            className="border border-gray-400 px-4 py-3 rounded-lg mb-5 text-xl text-black w-full"
+          <Input
+            className="mb-5"
             style={{ minHeight: 120 }}
             placeholder="Describe the issue..."
-            placeholderTextColor="#9CA3AF"
             value={description}
             onChangeText={setDescription}
             multiline
             textAlignVertical="top"
           />
 
-          {/* Address */}
           <Text className="text-lg font-semibold text-gray-700 mb-2">
             Address
           </Text>
-          <TextInput
-            className="border border-gray-400 px-4 rounded-lg mb-8 text-xl text-black w-full h-14"
+          <Input
+            className="mb-5"
             placeholder="Enter your address"
-            placeholderTextColor="#9CA3AF"
             value={address}
             onChangeText={setAddress}
           />
 
-          {/* Submit Button */}
-          <TouchableOpacity
+          {error ? (
+            <Text className="text-red-600 text-sm mb-4">{error}</Text>
+          ) : null}
+
+          <PrimaryButton
             onPress={handleSubmit}
-            className="bg-black py-4 rounded-lg w-full"
+            disabled={loading}
+            loading={loading}
           >
-            <Text className="text-xl font-semibold text-white text-center">
-              Submit Request
-            </Text>
-          </TouchableOpacity>
+            Submit Request
+          </PrimaryButton>
         </View>
       </ScrollView>
     </View>

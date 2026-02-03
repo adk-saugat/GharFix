@@ -1,36 +1,31 @@
 import React from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
+import { ScreenHeader } from "@/components/ScreenHeader";
+import { Card } from "@/components/Card";
+import { PrimaryButton } from "@/components/PrimaryButton";
 
 export default function CustomerDashboard() {
   const router = useRouter();
 
   return (
     <View className="flex-1 bg-white">
-      {/* Header */}
-      <View className="px-6 pt-24 pb-4">
-        <Text className="text-4xl font-bold text-black">Dashboard</Text>
-        <Text className="text-lg text-gray-600 mt-1">Welcome back!</Text>
-      </View>
+      <ScreenHeader title="Dashboard" subtitle="Welcome back!" />
 
       <ScrollView className="flex-1">
         <View className="px-6 py-2">
-          {/* Request Service Button */}
-          <TouchableOpacity
-            className="bg-black py-4 px-6 rounded-lg mb-6"
+          <PrimaryButton
             onPress={() => router.push("/customer/requestService")}
+            className="mb-6 px-6"
           >
-            <Text className="text-white text-xl font-semibold text-center">
-              Request Service
-            </Text>
-          </TouchableOpacity>
+            Request Service
+          </PrimaryButton>
 
-          {/* Active Jobs */}
           <Text className="text-2xl font-bold text-black mb-3">
             Active Jobs
           </Text>
 
-          <View className="border border-gray-300 rounded-lg p-4 mb-3">
+          <Card className="mb-3">
             <View className="flex-row justify-between items-start mb-2">
               <Text className="text-xl font-semibold text-black">
                 Plumbing Repair
@@ -45,9 +40,9 @@ export default function CustomerDashboard() {
               Worker: John Smith
             </Text>
             <Text className="text-base text-gray-600">Date: Jan 24, 2026</Text>
-          </View>
+          </Card>
 
-          <View className="border border-gray-300 rounded-lg p-4 mb-6">
+          <Card className="mb-6">
             <View className="flex-row justify-between items-start mb-2">
               <Text className="text-xl font-semibold text-black">
                 Electrical Work
@@ -62,12 +57,11 @@ export default function CustomerDashboard() {
               Worker: Sarah Johnson
             </Text>
             <Text className="text-base text-gray-600">Date: Jan 26, 2026</Text>
-          </View>
+          </Card>
 
-          {/* Past Jobs */}
           <Text className="text-2xl font-bold text-black mb-3">Past Jobs</Text>
 
-          <View className="border border-gray-300 rounded-lg p-4 mb-3">
+          <Card className="mb-3">
             <View className="flex-row justify-between items-start mb-2">
               <Text className="text-xl font-semibold text-black">
                 Carpentry
@@ -85,9 +79,9 @@ export default function CustomerDashboard() {
               Date: Jan 20, 2026
             </Text>
             <Text className="text-base text-gray-600">Paid: $150.00</Text>
-          </View>
+          </Card>
 
-          <View className="border border-gray-300 rounded-lg p-4 mb-6">
+          <Card className="mb-6">
             <View className="flex-row justify-between items-start mb-2">
               <Text className="text-xl font-semibold text-black">Painting</Text>
               <View className="bg-gray-100 px-3 py-1 rounded">
@@ -103,7 +97,7 @@ export default function CustomerDashboard() {
               Date: Jan 15, 2026
             </Text>
             <Text className="text-base text-gray-600">Paid: $200.00</Text>
-          </View>
+          </Card>
         </View>
       </ScrollView>
     </View>

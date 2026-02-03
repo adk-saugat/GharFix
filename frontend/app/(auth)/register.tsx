@@ -1,25 +1,10 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-} from "react-native";
+import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
-import { registerCustomer, registerWorker } from "../../api/auth";
-
-const AVAILABLE_SKILLS = [
-  "Plumbing",
-  "Electrical",
-  "Carpentry",
-  "Painting",
-  "HVAC",
-  "Roofing",
-  "Flooring",
-  "Landscaping",
-];
+import { registerCustomer, registerWorker } from "@/api/auth";
+import { Input } from "@/components/Input";
+import { PrimaryButton } from "@/components/PrimaryButton";
+import { JOB_CATEGORIES, categoryLabel } from "@/constants/categories";
 
 export default function GharfixRegister() {
   const [name, setName] = useState("");
@@ -40,7 +25,12 @@ export default function GharfixRegister() {
     setError("");
     setLoading(true);
     try {
-      const payload = { username: name.trim(), email: email.trim(), password, phone: phone.trim() || undefined };
+      const payload = {
+        username: name.trim(),
+        email: email.trim(),
+        password,
+        phone: phone.trim() || undefined,
+      };
       if (userType === "customer") await registerCustomer(payload);
       else await registerWorker(payload);
       router.replace("/login");
@@ -108,38 +98,34 @@ export default function GharfixRegister() {
               </TouchableOpacity>
             </View>
 
-            <TextInput
-              className="border border-gray-400 px-4 rounded-lg mb-4 text-xl text-black w-full h-14"
+            <Input
+              className="mb-4"
               placeholder="Name"
-              placeholderTextColor="#9CA3AF"
               value={name}
               onChangeText={setName}
               autoCapitalize="words"
             />
 
-            <TextInput
-              className="border border-gray-400 px-4 rounded-lg mb-4 text-xl text-black w-full h-14"
+            <Input
+              className="mb-4"
               placeholder="Email"
-              placeholderTextColor="#9CA3AF"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
             />
 
-            <TextInput
-              className="border border-gray-400 px-4 rounded-lg mb-4 text-xl text-black w-full h-14"
+            <Input
+              className="mb-4"
               placeholder="Phone Number"
-              placeholderTextColor="#9CA3AF"
               value={phone}
               onChangeText={setPhone}
               keyboardType="phone-pad"
             />
 
-            <TextInput
-              className="border border-gray-400 px-4 rounded-lg mb-4 text-xl text-black w-full h-14"
+            <Input
+              className="mb-4"
               placeholder="Password"
-              placeholderTextColor="#9CA3AF"
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -152,10 +138,9 @@ export default function GharfixRegister() {
             {/* Worker-specific fields */}
             {userType === "worker" && (
               <>
-                <TextInput
-                  className="border border-gray-400 px-4 rounded-lg mb-4 text-xl text-black w-full h-14"
+                <Input
+                  className="mb-4"
                   placeholder="Hourly Rate ($)"
-                  placeholderTextColor="#9CA3AF"
                   value={hourlyRate}
                   onChangeText={setHourlyRate}
                   keyboardType="numeric"
@@ -169,7 +154,7 @@ export default function GharfixRegister() {
                   >
                     <Text className="text-xl text-gray-600">
                       {selectedSkills.length > 0
-                        ? selectedSkills.join(", ")
+                        ? selectedSkills.map(categoryLabel).join(", ")
                         : "Select Skills"}
                     </Text>
                   </TouchableOpacity>
@@ -180,7 +165,7 @@ export default function GharfixRegister() {
                       style={{ maxHeight: 180 }}
                     >
                       <ScrollView nestedScrollEnabled>
-                        {AVAILABLE_SKILLS.map((skill) => (
+                        {JOB_CATEGORIES.map((skill) => (
                           <TouchableOpacity
                             key={skill}
                             onPress={() => toggleSkill(skill)}
@@ -198,7 +183,7 @@ export default function GharfixRegister() {
                               }`}
                             >
                               {selectedSkills.includes(skill) ? "✓ " : ""}
-                              {skill}
+                              {categoryLabel(skill)}
                             </Text>
                           </TouchableOpacity>
                         ))}
@@ -209,19 +194,14 @@ export default function GharfixRegister() {
               </>
             )}
 
-            <TouchableOpacity
-              className="bg-black py-4 rounded-lg w-full mb-4 disabled:opacity-60"
+            <PrimaryButton
               onPress={handleRegister}
               disabled={loading}
+              loading={loading}
+              className="mb-4"
             >
-              {loading ? (
-                <ActivityIndicator color="white" />
-              ) : (
-                <Text className="text-white text-base text-center font-semibold">
-                  Register
-                </Text>
-              )}
-            </TouchableOpacity>
+              Register
+            </PrimaryButton>
 
             <View className="flex-row justify-center">
               <Text className="text-gray-600 text-base">

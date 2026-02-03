@@ -1,14 +1,10 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
-} from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
-import { login } from "../../api/auth";
-import { setAuth } from "../../api/storage";
+import { login } from "@/api/auth";
+import { setAuth } from "@/api/storage";
+import { Input } from "@/components/Input";
+import { PrimaryButton } from "@/components/PrimaryButton";
 
 export default function GharfixLogin() {
   const [email, setEmail] = useState("");
@@ -46,20 +42,18 @@ export default function GharfixLogin() {
         <View className="w-full max-w-md mx-auto">
           <Text className="text-5xl font-bold text-black mb-12">Log In</Text>
 
-          <TextInput
-            className="border border-gray-400 px-4 rounded-lg mb-4 text-xl text-black w-full h-14"
+          <Input
+            className="mb-4"
             placeholder="Email"
-            placeholderTextColor="#9CA3AF"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
           />
 
-          <TextInput
-            className="border border-gray-400 px-4 rounded-lg mb-6 text-xl text-black w-full h-14"
+          <Input
+            className="mb-6"
             placeholder="Password"
-            placeholderTextColor="#9CA3AF"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -69,19 +63,14 @@ export default function GharfixLogin() {
             <Text className="text-red-600 text-sm mb-4">{error}</Text>
           ) : null}
 
-          <TouchableOpacity
-            className="bg-black py-4 rounded-lg w-full mb-4 disabled:opacity-60"
+          <PrimaryButton
             onPress={handleLogin}
             disabled={loading}
+            loading={loading}
+            className="mb-4"
           >
-            {loading ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <Text className="text-white text-base text-center font-semibold">
-                Log In
-              </Text>
-            )}
-          </TouchableOpacity>
+            Log In
+          </PrimaryButton>
 
           <View className="flex-row justify-center">
             <Text className="text-gray-600 text-base">

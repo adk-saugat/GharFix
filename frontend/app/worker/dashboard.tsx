@@ -1,46 +1,41 @@
 import React from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { ScreenHeader } from "@/components/ScreenHeader";
+import { Card } from "@/components/Card";
 
 export default function WorkerDashboard() {
   return (
     <View className="flex-1 bg-white">
-      {/* Header */}
-      <View className="px-6 pt-24 pb-4">
-        <Text className="text-4xl font-bold text-black">Dashboard</Text>
-        <Text className="text-lg text-gray-600 mt-1">Welcome back!</Text>
-      </View>
+      <ScreenHeader title="Dashboard" subtitle="Welcome back!" />
 
       <ScrollView className="flex-1">
         <View className="px-6 py-2">
-          {/* Earnings Summary */}
-          <View className="border border-gray-300 rounded-lg p-5 mb-6">
+          <Card className="p-5 mb-6">
             <Text className="text-base text-gray-500 mb-1">Total Earnings</Text>
             <Text className="text-4xl font-bold text-black">$1,240</Text>
             <Text className="text-sm text-gray-500 mt-1">This month</Text>
-          </View>
+          </Card>
 
-          {/* Stats Row */}
           <View className="flex-row gap-3 mb-6">
-            <View className="flex-1 border border-gray-300 rounded-lg p-4 items-center">
+            <Card className="flex-1 p-4 items-center">
               <Text className="text-3xl font-bold text-black">3</Text>
               <Text className="text-sm text-gray-600 mt-1">Active</Text>
-            </View>
-            <View className="flex-1 border border-gray-300 rounded-lg p-4 items-center">
+            </Card>
+            <Card className="flex-1 p-4 items-center">
               <Text className="text-3xl font-bold text-black">12</Text>
               <Text className="text-sm text-gray-600 mt-1">Completed</Text>
-            </View>
-            <View className="flex-1 border border-gray-300 rounded-lg p-4 items-center">
+            </Card>
+            <Card className="flex-1 p-4 items-center">
               <Text className="text-3xl font-bold text-black">4.8</Text>
               <Text className="text-sm text-gray-600 mt-1">Rating</Text>
-            </View>
+            </Card>
           </View>
 
-          {/* New Requests */}
           <Text className="text-2xl font-bold text-black mb-3">
             New Requests
           </Text>
 
-          <View className="border border-gray-300 rounded-lg p-4 mb-3">
+          <Card className="mb-3">
             <View className="flex-row justify-between items-start mb-2">
               <Text className="text-xl font-semibold text-black">
                 Fix Kitchen Sink
@@ -70,9 +65,9 @@ export default function WorkerDashboard() {
                 </Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </Card>
 
-          <View className="border border-gray-300 rounded-lg p-4 mb-6">
+          <Card className="mb-6">
             <View className="flex-row justify-between items-start mb-2">
               <Text className="text-xl font-semibold text-black">
                 Repaint Living Room
@@ -102,14 +97,13 @@ export default function WorkerDashboard() {
                 </Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </Card>
 
-          {/* Active Jobs */}
           <Text className="text-2xl font-bold text-black mb-3">
             Active Jobs
           </Text>
 
-          <View className="border border-gray-300 rounded-lg p-4 mb-3">
+          <Card className="mb-3">
             <View className="flex-row justify-between items-start mb-2">
               <Text className="text-xl font-semibold text-black">
                 Electrical Wiring
@@ -126,9 +120,9 @@ export default function WorkerDashboard() {
             <Text className="text-base text-gray-600">
               Address: 78 Elm St, Euless, TX
             </Text>
-          </View>
+          </Card>
 
-          <View className="border border-gray-300 rounded-lg p-4 mb-6">
+          <Card className="mb-6">
             <View className="flex-row justify-between items-start mb-2">
               <Text className="text-xl font-semibold text-black">
                 Deck Repair
@@ -145,7 +139,7 @@ export default function WorkerDashboard() {
             <Text className="text-base text-gray-600">
               Address: 9 Maple Lane, Euless, TX
             </Text>
-          </View>
+          </Card>
         </View>
       </ScrollView>
     </View>

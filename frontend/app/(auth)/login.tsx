@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { login } from "@/api/auth";
 import { setAuth } from "@/api/storage";
@@ -9,6 +10,7 @@ import { PrimaryButton } from "@/components/PrimaryButton";
 export default function GharfixLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -51,13 +53,26 @@ export default function GharfixLogin() {
             autoCapitalize="none"
           />
 
-          <Input
-            className="mb-6"
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
+          <View className="mb-6 relative">
+            <Input
+              className="pr-12"
+              placeholder="Password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+            />
+            <TouchableOpacity
+              onPress={() => setShowPassword((prev) => !prev)}
+              className="absolute right-4 top-0 bottom-0 justify-center"
+              hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
+            >
+              <Ionicons
+                name={showPassword ? "eye-off" : "eye"}
+                size={22}
+                color="#4B5563"
+              />
+            </TouchableOpacity>
+          </View>
 
           {error ? (
             <Text className="text-red-600 text-sm mb-4">{error}</Text>

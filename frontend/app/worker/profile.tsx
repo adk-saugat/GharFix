@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  ActivityIndicator,
+  TouchableOpacity,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { getWorkerProfile } from "@/api/worker";
 import { clearAuth } from "@/api/storage";
+import { categoryLabel } from "@/constants/categories";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { Card } from "@/components/Card";
 import { DetailRow } from "@/components/DetailRow";
@@ -20,6 +27,10 @@ type Worker = {
   verificationLevel: string;
   createdAt: string;
 };
+
+function capitalize(s: string): string {
+  return s.replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 export default function WorkerProfile() {
   const [worker, setWorker] = useState<Worker | null>(null);
@@ -41,18 +52,19 @@ export default function WorkerProfile() {
 
   if (loading) {
     return (
-      <View className="flex-1 bg-white justify-center items-center">
-        <ActivityIndicator size="large" />
+      <View className="flex-1 bg-gray-50 justify-center items-center">
+        <ActivityIndicator size="large" color="#000" />
+        <Text className="text-gray-600 mt-3 text-base">Loading profile...</Text>
       </View>
     );
   }
 
   if (error) {
     return (
-      <View className="flex-1 bg-white justify-center px-6">
-        <Text className="text-red-600 text-center mb-4">{error}</Text>
+      <View className="flex-1 bg-gray-50 justify-center px-6">
+        <Text className="text-red-600 text-center mb-4 text-base">{error}</Text>
         <PrimaryButton onPress={() => router.replace("/")}>
-          Go Home
+          Go home
         </PrimaryButton>
       </View>
     );
@@ -60,55 +72,80 @@ export default function WorkerProfile() {
 
   if (!worker) return null;
 
-  return (
-    <View className="flex-1 bg-white">
-      <ScreenHeader title="Profile" />
+  const skillsDisplay =
+    worker.skills?.length > 0
+      ? worker.skills.map(categoryLabel).join(", ")
+      : "None";
 
-      <ScrollView className="flex-1">
-        <View className="px-6 py-4">
+  return (
+    <View className="flex-1 bg-gray-50">
+      <ScreenHeader
+        title="Profile"
+        subtitle="Manage your account"
+        className="pt-28 pb-2"
+      />
+
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 32 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="px-5 pb-6">
           <View className="items-center mb-6">
-            <View className="w-24 h-24 rounded-full bg-gray-200 justify-center items-center border-2 border-gray-300">
-              <Text className="text-4xl text-gray-500">
+            <View className="w-28 h-28 rounded-full bg-gray-200 justify-center items-center border-2 border-gray-300 shadow-sm">
+              <Text className="text-5xl text-gray-500 font-medium">
                 {worker.username.charAt(0).toUpperCase()}
               </Text>
             </View>
-            <Text className="text-xl font-semibold text-black mt-3">
+            <Text className="text-2xl font-semibold text-black mt-4">
               {worker.username}
             </Text>
             <Text className="text-base text-gray-500 mt-1">Worker</Text>
+            <TouchableOpacity
+              onPress={() => {}}
+              className="mt-4 px-6 py-3 rounded-lg border-2 border-gray-400 bg-white"
+              activeOpacity={0.7}
+            >
+              <Text className="text-base font-semibold text-gray-800">
+                Edit profile
+              </Text>
+            </TouchableOpacity>
           </View>
 
-          <Text className="text-lg font-semibold text-gray-700 mb-3">
-            Account Details
+          <Text className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">
+            Account details
           </Text>
-          <Card className="mb-4 overflow-hidden">
+          <Card className="mb-4 p-0 overflow-hidden">
             <DetailRow label="Username" value={worker.username} />
             <DetailRow label="Email" value={worker.email} />
-            <DetailRow label="Phone" value={worker.phone || "Not provided"} />
-          </Card>
-
-          <Text className="text-lg font-semibold text-gray-700 mb-3">
-            Worker Details
-          </Text>
-          <Card className="mb-6 overflow-hidden">
             <DetailRow
-              label="Skills"
-              value={worker.skills?.join(", ") || "None"}
-            />
-            <DetailRow label="Hourly Rate" value={`$${worker.hourlyRate}`} />
-            <DetailRow label="Completed Jobs" value={worker.completedJobs} />
-            <DetailRow
-              label="Average Rating"
-              value={worker.avgRating?.toFixed(1) || "—"}
-            />
-            <DetailRow
-              label="Verification"
-              value={worker.verificationLevel || "—"}
+              label="Phone"
+              value={worker.phone || "Not provided"}
               last
             />
           </Card>
 
-          <PrimaryButton onPress={handleLogout}>Log Out</PrimaryButton>
+          <Text className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 mt-2">
+            Worker details
+          </Text>
+          <Card className="mb-6 p-0 overflow-hidden">
+            <DetailRow label="Skills" value={skillsDisplay} />
+            <DetailRow label="Hourly rate" value={`$${worker.hourlyRate}`} />
+            <DetailRow label="Completed jobs" value={worker.completedJobs} />
+            <DetailRow
+              label="Average rating"
+              value={
+                worker.avgRating != null ? worker.avgRating.toFixed(1) : "—"
+              }
+            />
+            <DetailRow
+              label="Verification"
+              value={capitalize(worker.verificationLevel || "—")}
+              last
+            />
+          </Card>
+
+          <PrimaryButton onPress={handleLogout}>Log out</PrimaryButton>
         </View>
       </ScrollView>
     </View>

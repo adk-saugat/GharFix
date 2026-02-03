@@ -1,9 +1,25 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { useRouter } from "expo-router";
+import { getJobs, type JobItem } from "@/api/worker";
+import { categoryLabel } from "@/constants/categories";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { Card } from "@/components/Card";
 
 export default function WorkerDashboard() {
+  const router = useRouter();
+  const [jobs, setJobs] = useState<JobItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getJobs()
+      .then(setJobs)
+      .catch(() => setJobs([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const displayJobs = jobs.slice(0, 2);
+
   return (
     <View className="flex-1 bg-white">
       <ScreenHeader title="Dashboard" subtitle="Welcome back!" />
@@ -31,73 +47,61 @@ export default function WorkerDashboard() {
             </Card>
           </View>
 
-          <Text className="text-2xl font-bold text-black mb-3">
-            New Requests
-          </Text>
-
-          <Card className="mb-3">
-            <View className="flex-row justify-between items-start mb-2">
-              <Text className="text-xl font-semibold text-black">
-                Fix Kitchen Sink
+          <View className="flex-row justify-between items-center mb-3">
+            <Text className="text-2xl font-bold text-black">New Requests</Text>
+            <TouchableOpacity
+              onPress={() => router.push("/worker/services")}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            >
+              <Text className="text-base font-semibold text-gray-600">
+                See more
               </Text>
-              <View className="bg-blue-100 px-3 py-1 rounded">
-                <Text className="text-blue-800 text-sm font-semibold">New</Text>
-              </View>
-            </View>
-            <Text className="text-base text-gray-600 mb-1">
-              Category: Plumbing
-            </Text>
-            <Text className="text-base text-gray-600 mb-1">
-              Customer: Sarah Johnson
-            </Text>
-            <Text className="text-base text-gray-600 mb-3">
-              Address: 45 Oak Ave, Euless, TX
-            </Text>
-            <View className="flex-row gap-3">
-              <TouchableOpacity className="flex-1 bg-black py-2 rounded-lg">
-                <Text className="text-white text-base font-semibold text-center">
-                  Accept
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity className="flex-1 border border-gray-400 py-2 rounded-lg">
-                <Text className="text-black text-base font-semibold text-center">
-                  Decline
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </Card>
+            </TouchableOpacity>
+          </View>
 
-          <Card className="mb-6">
-            <View className="flex-row justify-between items-start mb-2">
-              <Text className="text-xl font-semibold text-black">
-                Repaint Living Room
-              </Text>
-              <View className="bg-blue-100 px-3 py-1 rounded">
-                <Text className="text-blue-800 text-sm font-semibold">New</Text>
-              </View>
-            </View>
-            <Text className="text-base text-gray-600 mb-1">
-              Category: Painting
-            </Text>
-            <Text className="text-base text-gray-600 mb-1">
-              Customer: Mike Davis
-            </Text>
-            <Text className="text-base text-gray-600 mb-3">
-              Address: 12 Pine Rd, Euless, TX
-            </Text>
-            <View className="flex-row gap-3">
-              <TouchableOpacity className="flex-1 bg-black py-2 rounded-lg">
-                <Text className="text-white text-base font-semibold text-center">
-                  Accept
+          {loading ? (
+            <Text className="text-gray-500 mb-6">Loading requests...</Text>
+          ) : displayJobs.length === 0 ? (
+            <Text className="text-gray-500 mb-6">No new requests</Text>
+          ) : (
+            displayJobs.map((job) => (
+              <Card key={job.id} className="mb-3">
+                <View className="flex-row justify-between items-start mb-2">
+                  <Text className="text-xl font-semibold text-black flex-1">
+                    {job.title}
+                  </Text>
+                  <View className="bg-blue-100 px-3 py-1 rounded">
+                    <Text className="text-blue-800 text-sm font-semibold">
+                      {categoryLabel(job.status || "New")}
+                    </Text>
+                  </View>
+                </View>
+                <Text className="text-base text-gray-600 mb-1">
+                  Category: {categoryLabel(job.category ?? "")}
                 </Text>
-              </TouchableOpacity>
-              <TouchableOpacity className="flex-1 border border-gray-400 py-2 rounded-lg">
-                <Text className="text-black text-base font-semibold text-center">
-                  Decline
+                <Text className="text-base text-gray-600 mb-1">
+                  Customer: {job.username}
                 </Text>
-              </TouchableOpacity>
-            </View>
-          </Card>
+                <Text className="text-base text-gray-600 mb-3">
+                  Address: {job.address}
+                </Text>
+                <View className="flex-row gap-3">
+                  <TouchableOpacity className="flex-1 bg-black py-2 rounded-lg">
+                    <Text className="text-white text-base font-semibold text-center">
+                      Accept
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity className="flex-1 border border-gray-400 py-2 rounded-lg">
+                    <Text className="text-black text-base font-semibold text-center">
+                      Decline
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </Card>
+            ))
+          )}
+
+          {!loading && displayJobs.length > 0 && <View className="mb-6" />}
 
           <Text className="text-2xl font-bold text-black mb-3">
             Active Jobs

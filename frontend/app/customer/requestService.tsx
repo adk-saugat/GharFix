@@ -1,5 +1,13 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { createJob } from "@/api/jobs";
 import { getUser } from "@/api/storage";
@@ -7,6 +15,7 @@ import { JOB_CATEGORIES, categoryLabel } from "@/constants/categories";
 import { Input } from "@/components/Input";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { ScreenHeader } from "@/components/ScreenHeader";
+import { Card } from "@/components/Card";
 
 export default function RequestService() {
   const router = useRouter();
@@ -14,7 +23,6 @@ export default function RequestService() {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<string | null>(null);
   const [address, setAddress] = useState("");
-  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -58,106 +66,117 @@ export default function RequestService() {
   }
 
   return (
-    <View className="flex-1 bg-white">
-      <ScreenHeader title="Request Service" className="pt-28" />
+    <View className="flex-1 bg-gray-50">
+      <ScreenHeader
+        title="Request Service"
+        subtitle="Describe what you need and we’ll match you with a worker."
+        className="pt-28 pb-1"
+      />
 
-      <ScrollView className="flex-1">
-        <View className="px-6 py-4">
-          <Text className="text-lg font-semibold text-gray-700 mb-2">
-            Title
-          </Text>
-          <Input
-            className="mb-5"
-            placeholder="e.g. Fix kitchen sink"
-            value={title}
-            onChangeText={setTitle}
-          />
-
-          <Text className="text-lg font-semibold text-gray-700 mb-2">
-            Category
-          </Text>
-          <View className="mb-5 relative">
-            <TouchableOpacity
-              onPress={() => setShowCategoryDropdown(!showCategoryDropdown)}
-              className="border border-gray-400 px-4 rounded-lg h-14 justify-center w-full"
-            >
-              <Text
-                className={`text-xl ${category ? "text-black" : "text-gray-400"}`}
-              >
-                {category ? categoryLabel(category) : "Select a category"}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        className="flex-1"
+      >
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingHorizontal: 20,
+            paddingBottom: 24,
+          }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View className="flex-1 gap-4 py-2">
+            <Card className="p-4">
+              <Text className="text-sm font-semibold text-gray-700 mb-2">
+                What do you need?
               </Text>
-            </TouchableOpacity>
-
-            {showCategoryDropdown && (
-              <View
-                className="border border-gray-400 rounded-lg mt-2 bg-white absolute top-14 left-0 right-0 z-10"
-                style={{ maxHeight: 180 }}
-              >
-                <ScrollView nestedScrollEnabled>
-                  {JOB_CATEGORIES.map((cat) => (
+              <Input
+                className="mb-3"
+                placeholder="e.g. Fix kitchen sink"
+                value={title}
+                onChangeText={setTitle}
+              />
+              <Text className="text-sm font-semibold text-gray-700 mb-2">
+                Category
+              </Text>
+              <View className="flex-row flex-wrap gap-2">
+                {JOB_CATEGORIES.map((cat) => {
+                  const isSelected = category === cat;
+                  return (
                     <TouchableOpacity
                       key={cat}
-                      onPress={() => {
-                        setCategory(cat);
-                        setShowCategoryDropdown(false);
-                      }}
-                      className={`px-4 py-3 border-b border-gray-200 ${
-                        category === cat ? "bg-gray-100" : ""
+                      onPress={() => setCategory(cat)}
+                      activeOpacity={0.7}
+                      className={`px-4 py-2.5 rounded-lg border ${
+                        isSelected
+                          ? "bg-black border-black"
+                          : "bg-white border-gray-200"
                       }`}
                     >
                       <Text
-                        className={`text-lg ${
-                          category === cat
-                            ? "text-black font-semibold"
-                            : "text-gray-700"
+                        className={`text-sm font-medium ${
+                          isSelected ? "text-white" : "text-gray-700"
                         }`}
+                        numberOfLines={1}
                       >
-                        {category === cat ? "✓ " : ""}
                         {categoryLabel(cat)}
                       </Text>
                     </TouchableOpacity>
-                  ))}
-                </ScrollView>
+                  );
+                })}
               </View>
-            )}
+            </Card>
+
+            <Card className="p-4">
+              <Text className="text-base font-semibold text-gray-800 mb-3">
+                Details
+              </Text>
+              <Text className="text-sm font-medium text-gray-700 mb-2">
+                Description
+              </Text>
+              <Input
+                className="mb-4"
+                style={{ minHeight: 88 }}
+                placeholder="Describe the issue or what you need done..."
+                value={description}
+                onChangeText={setDescription}
+                multiline
+                textAlignVertical="top"
+              />
+              <Text className="text-sm font-medium text-gray-700 mb-2">
+                Service address
+              </Text>
+              <Input
+                placeholder="Enter your address"
+                value={address}
+                onChangeText={setAddress}
+              />
+            </Card>
+
+            {error ? (
+              <View className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mt-2">
+                <Text
+                  className="text-red-700 text-sm font-medium"
+                  numberOfLines={2}
+                >
+                  {error}
+                </Text>
+              </View>
+            ) : null}
+
+            <PrimaryButton
+              onPress={handleSubmit}
+              disabled={loading}
+              loading={loading}
+              className="mt-4"
+            >
+              Submit Request
+            </PrimaryButton>
           </View>
-
-          <Text className="text-lg font-semibold text-gray-700 mb-2">
-            Description
-          </Text>
-          <Input
-            className="mb-5"
-            style={{ minHeight: 120 }}
-            placeholder="Describe the issue..."
-            value={description}
-            onChangeText={setDescription}
-            multiline
-            textAlignVertical="top"
-          />
-
-          <Text className="text-lg font-semibold text-gray-700 mb-2">
-            Address
-          </Text>
-          <Input
-            className="mb-5"
-            placeholder="Enter your address"
-            value={address}
-            onChangeText={setAddress}
-          />
-
-          {error ? (
-            <Text className="text-red-600 text-sm mb-4">{error}</Text>
-          ) : null}
-
-          <PrimaryButton
-            onPress={handleSubmit}
-            disabled={loading}
-            loading={loading}
-          >
-            Submit Request
-          </PrimaryButton>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }

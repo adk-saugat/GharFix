@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { registerCustomer, registerWorker } from "@/api/auth";
 import { Input } from "@/components/Input";
@@ -11,6 +12,7 @@ export default function GharfixRegister() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [userType, setUserType] = useState<"customer" | "worker">("customer");
   const [hourlyRate, setHourlyRate] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
@@ -123,13 +125,26 @@ export default function GharfixRegister() {
               keyboardType="phone-pad"
             />
 
-            <Input
-              className="mb-4"
-              placeholder="Password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-            />
+            <View className="mb-4 relative">
+              <Input
+                className="pr-12"
+                placeholder="Password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+              />
+              <TouchableOpacity
+                onPress={() => setShowPassword((prev) => !prev)}
+                className="absolute right-4 top-0 bottom-0 justify-center"
+                hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
+              >
+                <Ionicons
+                  name={showPassword ? "eye-off" : "eye"}
+                  size={22}
+                  color="#4B5563"
+                />
+              </TouchableOpacity>
+            </View>
 
             {error ? (
               <Text className="text-red-600 text-sm mb-4">{error}</Text>

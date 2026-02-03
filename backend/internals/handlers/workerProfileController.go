@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func AddProfile(ctx *gin.Context){
+func AddWorkerProfile(ctx *gin.Context){
 	var profileRequest models.WorkerProfiles
 	err := ctx.ShouldBindJSON(&profileRequest)
 	if err != nil {
@@ -31,7 +31,7 @@ func AddProfile(ctx *gin.Context){
 	})
 }
 
-func GetProfile(ctx *gin.Context){
+func GetWorkerProfile(ctx *gin.Context){
 	userId := ctx.GetString("userId")
 
 	workerInfo, err := models.GetWorkerInfoById(userId)

@@ -54,3 +54,20 @@ func (request *LoginRequest) ValidateCredentials() (*User, error){
 
 	return &user, nil
 }
+
+func (user User) FetchCustomerProfile(userID string) (*User, error){
+	query := `
+		SELECT id, username, email, phone, role
+		FROM users
+		WHERE id = $1
+	`
+
+	var profile User
+	row := config.Pool.QueryRow(context.Background(), query, userID)
+	err := row.Scan(&profile.ID, &profile.Username, &profile.Email, &profile.Phone, &profile.Role)
+	if err != nil {
+		return nil, err
+	}
+
+	return &profile, nil
+}

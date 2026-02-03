@@ -42,5 +42,5 @@ func main(){
 	router.RegisterRoutes(server)
 
 	PORT := os.Getenv("PORT")
-	server.Run(":" + PORT)
+	server.Run("0.0.0.0:" + PORT)
 }

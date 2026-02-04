@@ -22,7 +22,7 @@ type Job struct{
 type JobWithCustomerDetails struct{
 	ID string `json:"id"`
 	CustomerId string `json:"customerId" binding:"required"`
-	Username string `json:"username" binding:"required`
+	Username string `json:"username" binding:"required"`
 	Phone string `json:"phone" binding:"required"`
 	Title string `json:"title" binding:"required"`
 	Description string `json:"description" binding:"required"`
@@ -70,4 +70,23 @@ func FetchAllJobs() (*[]JobWithCustomerDetails, error){
 		jobDetails = append(jobDetails, jobDetail)
 	}
 	return &jobDetails, nil
+}
+
+func FetchJobByID(id string) (*JobWithCustomerDetails, error) {
+	query := `
+		SELECT jobs.id, customer_id, users.username, users.phone, title, description, category, address, status, created_at
+		FROM jobs
+		JOIN users ON jobs.customer_id = users.id
+		WHERE jobs.id = $1
+	`
+	var jobDetail JobWithCustomerDetails
+	err := config.Pool.QueryRow(context.Background(), query, id).Scan(
+		&jobDetail.ID, &jobDetail.CustomerId, &jobDetail.Username, &jobDetail.Phone,
+		&jobDetail.Title, &jobDetail.Description, &jobDetail.Category, &jobDetail.Address,
+		&jobDetail.Status, &jobDetail.CreatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &jobDetail, nil
 }

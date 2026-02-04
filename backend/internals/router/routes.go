@@ -32,6 +32,7 @@ func RegisterRoutes(server *gin.Engine){
 	protectedWorkerRoute.GET("/profile", handlers.GetWorkerProfile)
 
 	protectedWorkerRoute.GET("/jobs", handlers.GetAllJobs)
+	protectedWorkerRoute.GET("/jobs/:id", handlers.GetJobByID)
 
 	// protected customer route
 	protectedCustomerRoute := protectedRoute.Group("/")

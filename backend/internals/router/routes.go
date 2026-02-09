@@ -33,11 +33,13 @@ func RegisterRoutes(server *gin.Engine){
 
 	protectedWorkerRoute.GET("/jobs", handlers.GetAllJobs)
 	protectedWorkerRoute.GET("/jobs/:id", handlers.GetJobByID)
+	protectedWorkerRoute.POST("/jobs/:id/apply", handlers.ApplyForJob)
 
 	// protected customer route
 	protectedCustomerRoute := protectedRoute.Group("/")
 	protectedCustomerRoute.Use(middleware.CheckCustomer)
 
 	protectedCustomerRoute.POST("/job", handlers.CreateJob)
+	protectedCustomerRoute.GET("/job/:id/applications", handlers.GetJobApplications)
 	protectedCustomerRoute.GET("/profile", handlers.GetCustomerProfile)
 }

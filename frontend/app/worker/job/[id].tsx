@@ -9,7 +9,12 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { getJob, type JobItem } from "@/api/worker";
+import {
+  getJob,
+  applyForJob,
+  type JobItem,
+  type MyJobApplication,
+} from "@/api/worker";
 import { categoryLabel } from "@/constants/categories";
 import { Card } from "@/components/Card";
 import { PrimaryButton } from "@/components/PrimaryButton";
@@ -20,6 +25,9 @@ export default function JobDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [job, setJob] = useState<JobItem | null>(null);
+  const [myApplication, setMyApplication] = useState<MyJobApplication | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
   const [proposedPrice, setProposedPrice] = useState("");
   const [applyLoading, setApplyLoading] = useState(false);
@@ -28,32 +36,54 @@ export default function JobDetail() {
   useEffect(() => {
     if (!id) {
       setJob(null);
+      setMyApplication(null);
       setLoading(false);
       return;
     }
     getJob(id)
-      .then(setJob)
-      .catch(() => setJob(null))
+      .then(({ job: j, myApplication: app }) => {
+        setJob(j);
+        setMyApplication(app);
+      })
+      .catch(() => {
+        setJob(null);
+        setMyApplication(null);
+      })
       .finally(() => setLoading(false));
   }, [id]);
 
-  function handleApply() {
-    if (!job) return;
+  async function handleApply() {
+    if (!job?.id) return;
     setApplyError("");
-    setApplyLoading(true);
     const priceStr = proposedPrice.trim();
-    const price = priceStr === "" ? null : parseFloat(priceStr);
-    if (priceStr !== "" && (isNaN(price as number) || (price as number) < 0)) {
-      setApplyError("Enter a valid price or leave blank.");
-      setApplyLoading(false);
+    const price = parseFloat(priceStr);
+    if (!priceStr || isNaN(price) || price < 0) {
+      setApplyError("Enter a valid proposed price.");
       return;
     }
-    setApplyLoading(false);
-    Alert.alert(
-      "Application sent",
-      "Your application has been submitted. The customer will review it.",
-      [{ text: "OK", onPress: () => router.replace("/worker/services") }]
-    );
+    setApplyLoading(true);
+    try {
+      await applyForJob(job.id, price);
+      setMyApplication({
+        id: "",
+        jobId: job.id,
+        workerId: "",
+        proposedPrice: price,
+        status: "pending",
+        createdAt: new Date().toISOString(),
+      });
+      Alert.alert(
+        "Application sent",
+        "Your application has been submitted. The customer will review it.",
+        [{ text: "OK", onPress: () => router.replace("/worker/services") }],
+      );
+    } catch (e) {
+      setApplyError(
+        e instanceof Error ? e.message : "Could not submit application.",
+      );
+    } finally {
+      setApplyLoading(false);
+    }
   }
 
   if (loading) {
@@ -145,31 +175,48 @@ export default function JobDetail() {
           />
         </Card>
 
-        <Text className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-          Apply for this job
-        </Text>
-        <Card className="mb-4 p-4">
-          <Text className="text-sm font-medium text-gray-700 mb-1.5">
-            Proposed price ($)
-          </Text>
-          <Input
-            placeholder="Optional - enter your quote"
-            value={proposedPrice}
-            onChangeText={setProposedPrice}
-            keyboardType="decimal-pad"
-            className="mb-3"
-          />
-          {applyError ? (
-            <Text className="text-red-600 text-sm mb-3">{applyError}</Text>
-          ) : null}
-          <PrimaryButton
-            onPress={handleApply}
-            disabled={applyLoading}
-            loading={applyLoading}
-          >
-            Submit application
-          </PrimaryButton>
-        </Card>
+        {myApplication ? (
+          <Card className="mb-4 p-4">
+            <View className="flex-row items-center gap-2">
+              <Ionicons name="checkmark-circle" size={24} color="#059669" />
+              <Text className="text-base font-semibold text-gray-800">
+                Application submitted, waiting
+              </Text>
+            </View>
+            <Text className="text-sm text-gray-600 mt-1.5">
+              Your application has been sent. The customer will review it and
+              get in touch.
+            </Text>
+          </Card>
+        ) : (
+          <>
+            <Text className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+              Apply for this job
+            </Text>
+            <Card className="mb-4 p-4">
+              <Text className="text-sm font-medium text-gray-700 mb-1.5">
+                Proposed price ($)
+              </Text>
+              <Input
+                placeholder="Enter your quote"
+                value={proposedPrice}
+                onChangeText={setProposedPrice}
+                keyboardType="decimal-pad"
+                className="mb-3"
+              />
+              {applyError ? (
+                <Text className="text-red-600 text-sm mb-3">{applyError}</Text>
+              ) : null}
+              <PrimaryButton
+                onPress={handleApply}
+                disabled={applyLoading}
+                loading={applyLoading}
+              >
+                Submit application
+              </PrimaryButton>
+            </Card>
+          </>
+        )}
       </ScrollView>
     </View>
   );

@@ -1,7 +1,8 @@
 import { getToken } from "./storage";
 
-const BASE_URL =
-  process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
+const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
+
+export type { JobItem, WorkerProfile, MyJobApplication } from "./types";
 
 export async function getWorkerProfile() {
   const token = await getToken();
@@ -9,57 +10,63 @@ export async function getWorkerProfile() {
     headers: { Authorization: token ?? "" },
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error ?? "Failed to load profile");
-  return data.worker as {
-    id: string;
-    username: string;
-    email: string;
-    phone: string;
-    skills: string[];
-    hourlyRate: number;
-    completedJobs: number;
-    avgRating: number;
-    verificationLevel: string;
-    createdAt: string;
-  };
+  if (!res.ok) {
+    throw new Error(data?.error ?? "Failed to load profile");
+  }
+  return data.worker;
 }
 
-export type JobItem = {
-  id: string;
-  customerId: string;
-  username: string;
-  phone: string;
-  title: string;
-  description: string;
-  category: string;
-  address: string;
-  status: string;
-  createdAt: string;
-};
-
-export async function getJobs(): Promise<JobItem[]> {
+export async function getJobs() {
   const token = await getToken();
   const res = await fetch(`${BASE_URL}/worker/jobs`, {
     headers: { Authorization: token ?? "" },
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error ?? "Failed to load jobs");
-  const list = data.jobs ?? [];
-  return list.map((j: Record<string, unknown>) => ({
-    id: String(j.id ?? ""),
-    customerId: String(j.customerId ?? ""),
-    username: String(j.username ?? ""),
-    phone: String(j.phone ?? ""),
-    title: String(j.title ?? ""),
-    description: String(j.description ?? ""),
-    category: String(j.category ?? ""),
-    address: String(j.address ?? ""),
-    status: String(j.status ?? "open"),
-    createdAt: typeof j.createdAt === "string" ? j.createdAt : "",
-  }));
+  if (!res.ok) {
+    throw new Error(data?.error ?? "Failed to load jobs");
+  }
+  return data.jobs ?? [];
 }
 
-export async function getJob(id: string): Promise<JobItem | null> {
-  const jobs = await getJobs();
-  return jobs.find((j) => j.id === id) ?? null;
+export type JobDetailResponse = {
+  job: import("./types").JobItem | null;
+  myApplication: import("./types").MyJobApplication | null;
+};
+
+export async function getJob(id: string): Promise<JobDetailResponse> {
+  const token = await getToken();
+  const res = await fetch(`${BASE_URL}/worker/jobs/${encodeURIComponent(id)}`, {
+    headers: { Authorization: token ?? "" },
+  });
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 404) {
+    return { job: null, myApplication: null };
+  }
+  if (!res.ok) {
+    throw new Error(data?.error ?? "Failed to load job");
+  }
+  return {
+    job: data.job ?? null,
+    myApplication: data.myApplication ?? null,
+  };
+}
+
+export async function applyForJob(jobId: string, proposedPrice: number) {
+  const token = await getToken();
+  const res = await fetch(
+    `${BASE_URL}/worker/jobs/${encodeURIComponent(jobId)}/apply`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: token ?? "",
+      },
+      body: JSON.stringify({ proposedPrice }),
+    }
+  );
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data?.error ?? "Failed to submit application");
+  }
+  return data;
 }

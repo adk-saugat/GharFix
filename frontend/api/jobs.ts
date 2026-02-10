@@ -20,6 +20,8 @@ export async function createJob(payload: {
     body: JSON.stringify(payload),
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error ?? "Failed to create job");
+  if (!res.ok) {
+    throw new Error(data?.error ?? "Failed to create job");
+  }
   return data;
 }

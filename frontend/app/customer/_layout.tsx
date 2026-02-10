@@ -38,6 +38,19 @@ const CustomerLayout = () => {
         }}
       />
       <Tabs.Screen
+        name="myJobs"
+        options={{
+          title: "My Jobs",
+          tabBarIcon: ({ focused }) => (
+            <Ionicons
+              name={focused ? "briefcase" : "briefcase-outline"}
+              size={24}
+              color={focused ? "#000000" : "#9CA3AF"}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="requestService"
         options={{
           title: "Request",
@@ -61,6 +74,12 @@ const CustomerLayout = () => {
               color={focused ? "#000000" : "#9CA3AF"}
             />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="job/[id]"
+        options={{
+          href: null,
         }}
       />
     </Tabs>

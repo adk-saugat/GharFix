@@ -22,7 +22,10 @@ export default function WorkerDashboard() {
 
   return (
     <View className="flex-1 bg-white">
-      <ScreenHeader title="Dashboard" subtitle="Welcome back!" />
+      <ScreenHeader
+        title="Dashboard"
+        subtitle="Here's what's going on with your home repairs."
+      />
 
       <ScrollView className="flex-1">
         <View className="px-6 py-2">

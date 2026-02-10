@@ -40,6 +40,8 @@ func RegisterRoutes(server *gin.Engine){
 	protectedCustomerRoute.Use(middleware.CheckCustomer)
 
 	protectedCustomerRoute.POST("/job", handlers.CreateJob)
+	protectedCustomerRoute.GET("/jobs", handlers.GetMyJobs)
 	protectedCustomerRoute.GET("/job/:id/applications", handlers.GetJobApplications)
+	protectedCustomerRoute.PUT("/job/:id/application/:applicationId/accept", handlers.AcceptApplication)
 	protectedCustomerRoute.GET("/profile", handlers.GetCustomerProfile)
 }

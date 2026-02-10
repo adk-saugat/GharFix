@@ -53,7 +53,7 @@ func GetJobByID(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Job ID is required."})
 		return
 	}
-	job, err := models.FetchJobByID(id)
+	job, err := models.FetchJobByID(id, nil)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "Job not found."})
@@ -62,5 +62,25 @@ func GetJobByID(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Could not fetch job."})
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"job": job})
+	workerID, _ := ctx.Get("userId")
+	myApplication, _ := models.FetchApplicationByJobAndWorker(id, workerID.(string))
+	resp := gin.H{"job": job}
+	if myApplication != nil {
+		resp["myApplication"] = myApplication
+	}
+	ctx.JSON(http.StatusOK, resp)
+}
+
+func GetMyJobs(ctx *gin.Context) {
+	customerID, exists := ctx.Get("userId")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized."})
+		return
+	}
+	jobs, err := models.FetchJobsByCustomerID(customerID.(string))
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Could not fetch jobs."})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"jobs": jobs})
 }

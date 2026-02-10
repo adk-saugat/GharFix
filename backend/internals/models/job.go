@@ -48,23 +48,28 @@ func (job *Job) Create() (*Job, error){
 	return job, nil
 }
 
-func FetchAllJobs() (*[]JobWithCustomerDetails, error){
-	query := `
-		SELECT jobs.id, customer_id, users.username, users.phone, title, description, category, address, status, created_at
-		FROM jobs
-		JOIN users ON jobs.customer_id = users.id
-	`
+const jobWithCustomerQuery = `
+	SELECT jobs.id, customer_id, users.username, users.phone, title, description, category, address, status, created_at
+	FROM jobs
+	JOIN users ON jobs.customer_id = users.id
+`
 
-	rows, err := config.Pool.Query(context.Background(), query)
+func scanJobWithCustomer(row interface {
+	Scan(dest ...interface{}) error
+}, j *JobWithCustomerDetails) error {
+	return row.Scan(&j.ID, &j.CustomerId, &j.Username, &j.Phone, &j.Title, &j.Description, &j.Category, &j.Address, &j.Status, &j.CreatedAt)
+}
+
+func FetchAllJobs() (*[]JobWithCustomerDetails, error) {
+	rows, err := config.Pool.Query(context.Background(), jobWithCustomerQuery)
 	if err != nil {
 		return nil, err
 	}
 
 	var jobDetails []JobWithCustomerDetails
-	for rows.Next(){
+	for rows.Next() {
 		var jobDetail JobWithCustomerDetails
-		err = rows.Scan(&jobDetail.ID, &jobDetail.CustomerId, &jobDetail.Username, &jobDetail.Phone, &jobDetail.Title, &jobDetail.Description, &jobDetail.Category, &jobDetail.Address, &jobDetail.Status, &jobDetail.CreatedAt)
-		if err != nil {
+		if err := scanJobWithCustomer(rows, &jobDetail); err != nil {
 			return nil, err
 		}
 		jobDetails = append(jobDetails, jobDetail)
@@ -72,21 +77,41 @@ func FetchAllJobs() (*[]JobWithCustomerDetails, error){
 	return &jobDetails, nil
 }
 
-func FetchJobByID(id string) (*JobWithCustomerDetails, error) {
-	query := `
-		SELECT jobs.id, customer_id, users.username, users.phone, title, description, category, address, status, created_at
-		FROM jobs
-		JOIN users ON jobs.customer_id = users.id
-		WHERE jobs.id = $1
-	`
+// FetchJobByID returns a job by id. If customerID is not nil, the job is returned only if it belongs to that customer.
+func FetchJobByID(id string, customerID *string) (*JobWithCustomerDetails, error) {
 	var jobDetail JobWithCustomerDetails
-	err := config.Pool.QueryRow(context.Background(), query, id).Scan(
-		&jobDetail.ID, &jobDetail.CustomerId, &jobDetail.Username, &jobDetail.Phone,
-		&jobDetail.Title, &jobDetail.Description, &jobDetail.Category, &jobDetail.Address,
-		&jobDetail.Status, &jobDetail.CreatedAt,
-	)
+	var err error
+	if customerID != nil {
+		err = scanJobWithCustomer(
+			config.Pool.QueryRow(context.Background(), jobWithCustomerQuery+" WHERE jobs.id = $1 AND jobs.customer_id = $2", id, *customerID),
+			&jobDetail,
+		)
+	} else {
+		err = scanJobWithCustomer(
+			config.Pool.QueryRow(context.Background(), jobWithCustomerQuery+" WHERE jobs.id = $1", id),
+			&jobDetail,
+		)
+	}
 	if err != nil {
 		return nil, err
 	}
 	return &jobDetail, nil
+}
+
+func FetchJobsByCustomerID(customerID string) ([]JobWithCustomerDetails, error) {
+	rows, err := config.Pool.Query(context.Background(), jobWithCustomerQuery+" WHERE jobs.customer_id = $1 ORDER BY jobs.created_at DESC", customerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var jobs []JobWithCustomerDetails
+	for rows.Next() {
+		var j JobWithCustomerDetails
+		if err := scanJobWithCustomer(rows, &j); err != nil {
+			return nil, err
+		}
+		jobs = append(jobs, j)
+	}
+	return jobs, nil
 }

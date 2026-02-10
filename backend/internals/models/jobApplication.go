@@ -2,9 +2,11 @@ package models
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/adk-saugat/gharfix/backend/internals/config"
+	"github.com/jackc/pgx/v5"
 )
 
 type JobApplication struct {
@@ -28,6 +30,25 @@ func (app *JobApplication) Create() (*JobApplication, error) {
 		return nil, err
 	}
 	return app, nil
+}
+
+// FetchApplicationByJobAndWorker returns the worker's application for the job, or (nil, nil) if none.
+func FetchApplicationByJobAndWorker(jobID, workerID string) (*JobApplication, error) {
+	query := `
+		SELECT id, job_id, worker_id, proposed_price, status, created_at
+		FROM job_applications
+		WHERE job_id = $1 AND worker_id = $2
+	`
+	var app JobApplication
+	err := config.Pool.QueryRow(context.Background(), query, jobID, workerID).
+		Scan(&app.ID, &app.JobID, &app.WorkerID, &app.ProposedPrice, &app.Status, &app.CreatedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &app, nil
 }
 
 type ApplicationWithWorker struct {
@@ -67,3 +88,26 @@ func FetchApplicationsForJob(jobID, customerID string) ([]ApplicationWithWorker,
 	}
 	return applications, nil
 }
+
+func AcceptApplication(applicationID, jobID, customerID string) error {
+	query := `
+		UPDATE job_applications
+		SET status = 'accepted'
+		WHERE id = $1 AND job_id = $2
+		AND EXISTS (SELECT 1 FROM jobs WHERE id = $2 AND customer_id = $3)
+	`
+	cmd, err := config.Pool.Exec(context.Background(), query, applicationID, jobID, customerID)
+	if err != nil {
+		return err
+	}
+	if cmd.RowsAffected() == 0 {
+		return ErrNoRows
+	}
+	// Reject other applications for the same job
+	_, _ = config.Pool.Exec(context.Background(),
+		`UPDATE job_applications SET status = 'rejected' WHERE job_id = $1 AND id != $2`,
+		jobID, applicationID)
+	return nil
+}
+
+var ErrNoRows = errors.New("no rows affected")

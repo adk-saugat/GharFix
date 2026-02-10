@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/adk-saugat/gharfix/backend/internals/models"
@@ -66,4 +67,31 @@ func GetJobApplications(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"applications": applications})
+}
+
+func AcceptApplication(ctx *gin.Context) {
+	jobID := ctx.Param("id")
+	applicationID := ctx.Param("applicationId")
+	if jobID == "" || applicationID == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Job ID and Application ID are required."})
+		return
+	}
+
+	customerID, exists := ctx.Get("userId")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized."})
+		return
+	}
+
+	err := models.AcceptApplication(applicationID, jobID, customerID.(string))
+	if err != nil {
+		if errors.Is(err, models.ErrNoRows) {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "Application or job not found."})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Could not accept application."})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "Application accepted."})
 }

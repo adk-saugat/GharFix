@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView, Alert } from "react-native";
+import { View, Text, ScrollView, Alert, TouchableOpacity } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
@@ -166,20 +166,34 @@ export default function JobDetail() {
 
         {/* Application status or apply form */}
         {myApplication ? (
-          <Card className="p-5 border-green-200 bg-green-50">
-            <View className="flex-row items-center gap-3 mb-2">
-              <View className="w-10 h-10 rounded-full bg-green-100 items-center justify-center">
-                <Ionicons name="checkmark-circle" size={24} color="#059669" />
+          <>
+            <Card className="p-5 border-green-200 bg-green-50 mb-6">
+              <View className="flex-row items-center gap-3 mb-2">
+                <View className="w-10 h-10 rounded-full bg-green-100 items-center justify-center">
+                  <Ionicons name="checkmark-circle" size={24} color="#059669" />
+                </View>
+                <Text className="text-lg font-semibold text-gray-900">
+                  {myApplication.status === "accepted"
+                    ? "Application accepted"
+                    : "Application submitted"}
+                </Text>
               </View>
-              <Text className="text-lg font-semibold text-gray-900">
-                Application submitted
+              <Text className="text-sm text-gray-600 leading-5">
+                {myApplication.status === "accepted"
+                  ? `Your quote of $${myApplication.proposedPrice.toFixed(2)} was accepted. You can chat with the customer to coordinate the job.`
+                  : `Your quote of $${myApplication.proposedPrice.toFixed(2)} has been sent. The customer will review it and get in touch.`}
               </Text>
-            </View>
-            <Text className="text-sm text-gray-600 leading-5">
-              Your quote of ${myApplication.proposedPrice.toFixed(2)} has been
-              sent. The customer will review it and get in touch.
-            </Text>
-          </Card>
+              {myApplication.status === "accepted" && id ? (
+                <TouchableOpacity
+                  onPress={() => router.push(routes.worker.jobChat(id))}
+                  className="flex-row items-center justify-center gap-2 mt-4 pt-4 border-t border-green-200"
+                >
+                  <Ionicons name="chatbubble-ellipses-outline" size={20} color="#059669" />
+                  <Text className="text-base font-semibold text-green-800">Open chat</Text>
+                </TouchableOpacity>
+              ) : null}
+            </Card>
+          </>
         ) : (
           <>
             <Text className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 px-0.5">

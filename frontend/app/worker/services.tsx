@@ -8,8 +8,8 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { getJobs, type JobItem } from "@/api/worker";
-import { JOB_CATEGORIES, categoryLabel } from "@/constants/categories";
+import { getJobs, getWorkerProfile, type JobItem } from "@/api/worker";
+import { categoryLabel } from "@/constants/categories";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { WorkerJobCard } from "@/components/WorkerJobCard";
 import { EmptyState } from "@/components/EmptyState";
@@ -19,12 +19,19 @@ export default function Services() {
   const router = useRouter();
   const [jobs, setJobs] = useState<JobItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [workerCategories, setWorkerCategories] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [skillFilter, setSkillFilter] = useState<string | null>(null);
 
   useEffect(() => {
-    getJobs()
-      .then(setJobs)
+    Promise.all([getJobs(), getWorkerProfile()])
+      .then(([jobsList, profile]) => {
+        const openOnly = (jobsList ?? []).filter(
+          (j) => (j.status ?? "").toLowerCase() === "open"
+        );
+        setJobs(openOnly);
+        setWorkerCategories(profile?.skills ?? []);
+      })
       .catch(() => setJobs([]))
       .finally(() => setLoading(false));
   }, []);
@@ -84,7 +91,7 @@ export default function Services() {
             All
           </Text>
         </TouchableOpacity>
-        {JOB_CATEGORIES.map((cat) => {
+        {workerCategories.map((cat) => {
           const isSelected =
             (skillFilter ?? "").trim().toLowerCase() === cat.toLowerCase();
           return (

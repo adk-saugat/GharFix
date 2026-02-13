@@ -9,6 +9,7 @@ export const routes = {
     requestService: "/customer/requestService" as const,
     profile: "/customer/profile" as const,
     job: (id: string) => `/customer/job/${id}` as const,
+    jobChat: (id: string) => `/customer/job/${id}/chat` as const,
   },
   worker: {
     dashboard: "/worker/dashboard" as const,
@@ -16,5 +17,6 @@ export const routes = {
     applied: "/worker/applied" as const,
     profile: "/worker/profile" as const,
     job: (id: string) => `/worker/job/${id}` as const,
+    jobChat: (id: string) => `/worker/job/${id}/chat` as const,
   },
 } as const;

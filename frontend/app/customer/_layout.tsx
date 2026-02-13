@@ -77,10 +77,8 @@ const CustomerLayout = () => {
         }}
       />
       <Tabs.Screen
-        name="job/[id]"
-        options={{
-          href: null,
-        }}
+        name="job"
+        options={{ href: null }}
       />
     </Tabs>
   );

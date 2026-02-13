@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView, Alert } from "react-native";
+import { View, Text, ScrollView, Alert, TouchableOpacity } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
@@ -16,6 +16,7 @@ import { BackHeader } from "@/components/BackHeader";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { StatusBadge } from "@/components/StatusBadge";
 import { EmptyState } from "@/components/EmptyState";
+import { routes } from "@/utils/routes";
 
 export default function CustomerJobDetail() {
   const { id } = useLocalSearchParams<{ id: string; title?: string }>();
@@ -54,6 +55,7 @@ export default function CustomerJobDetail() {
             : { ...a, status: "rejected" as const },
         ),
       );
+      setJob((prev) => (prev ? { ...prev, status: "assigned" } : null));
       Alert.alert(
         "Worker accepted",
         `${app.workerName} has been assigned to this job.`,
@@ -123,6 +125,15 @@ export default function CustomerJobDetail() {
                   {job.address}
                 </Text>
               </View>
+            ) : null}
+            {job.status === "assigned" && id ? (
+              <TouchableOpacity
+                onPress={() => router.push(routes.customer.jobChat(id))}
+                className="flex-row items-center justify-center gap-2 mt-4 pt-4 border-t border-gray-100"
+              >
+                <Ionicons name="chatbubble-ellipses-outline" size={20} color="#000" />
+                <Text className="text-base font-semibold text-black">Open chat</Text>
+              </TouchableOpacity>
             ) : null}
           </Card>
         )}

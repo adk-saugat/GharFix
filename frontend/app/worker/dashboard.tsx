@@ -18,7 +18,12 @@ export default function WorkerDashboard() {
 
   useEffect(() => {
     getJobs()
-      .then(setJobs)
+      .then((list) => {
+        const openOnly = (list ?? []).filter(
+          (j) => (j.status ?? "").toLowerCase() === "open"
+        );
+        setJobs(openOnly);
+      })
       .catch(() => setJobs([]))
       .finally(() => setLoading(false));
   }, []);

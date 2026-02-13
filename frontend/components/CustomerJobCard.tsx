@@ -32,18 +32,16 @@ export function CustomerJobCard({ job, onPress, className = "" }: CustomerJobCar
             </Text>
           </View>
         </View>
-        <View className="flex-row items-center justify-between gap-2">
-          {job.address ? (
-            <View className="flex-row items-start flex-1 min-w-0">
-              <Ionicons name="location-outline" size={16} color="#6B7280" style={{ marginTop: 2 }} />
-              <Text className="text-sm text-gray-600 ml-2 flex-1" numberOfLines={2}>
-                {job.address}
-              </Text>
-            </View>
-          ) : (
-            <View className="flex-1" />
-          )}
-          <Text className="text-sm font-semibold text-gray-500 shrink-0">View applications →</Text>
+        {job.address ? (
+          <View className="flex-row items-start mb-3">
+            <Ionicons name="location-outline" size={16} color="#6B7280" style={{ marginTop: 2 }} />
+            <Text className="text-sm text-gray-600 ml-2 flex-1" numberOfLines={2}>
+              {job.address}
+            </Text>
+          </View>
+        ) : null}
+        <View className="flex-row justify-end">
+          <Text className="text-sm font-semibold text-gray-500">View applications →</Text>
         </View>
       </Card>
     </TouchableOpacity>

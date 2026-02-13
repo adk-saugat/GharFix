@@ -1,26 +1,26 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-} from "react-native";
+import { View, Text, ScrollView, Alert } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
+  getMyJobs,
   getJobApplications,
   acceptApplication,
   type JobApplicationItem,
+  type JobItem,
 } from "@/api/customer";
 import { categoryLabel } from "@/constants/categories";
 import { Card } from "@/components/Card";
 import { PrimaryButton } from "@/components/PrimaryButton";
+import { BackHeader } from "@/components/BackHeader";
+import { LoadingScreen } from "@/components/LoadingScreen";
+import { StatusBadge } from "@/components/StatusBadge";
+import { EmptyState } from "@/components/EmptyState";
 
 export default function CustomerJobDetail() {
-  const { id, title } = useLocalSearchParams<{ id: string; title?: string }>();
+  const { id } = useLocalSearchParams<{ id: string; title?: string }>();
   const router = useRouter();
+  const [job, setJob] = useState<JobItem | null>(null);
   const [applications, setApplications] = useState<JobApplicationItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
@@ -30,9 +30,15 @@ export default function CustomerJobDetail() {
       setLoading(false);
       return;
     }
-    getJobApplications(id)
-      .then(setApplications)
-      .catch(() => setApplications([]))
+    Promise.all([getMyJobs(), getJobApplications(id)])
+      .then(([jobs, apps]) => {
+        setJob(jobs.find((j) => j.id === id) ?? null);
+        setApplications(apps);
+      })
+      .catch(() => {
+        setJob(null);
+        setApplications([]);
+      })
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -44,8 +50,8 @@ export default function CustomerJobDetail() {
       setApplications((prev) =>
         prev.map((a) =>
           a.id === app.id
-            ? { ...a, status: "accepted" }
-            : { ...a, status: "rejected" },
+            ? { ...a, status: "accepted" as const }
+            : { ...a, status: "rejected" as const },
         ),
       );
       Alert.alert(
@@ -65,97 +71,119 @@ export default function CustomerJobDetail() {
 
   if (loading) {
     return (
-      <View className="flex-1 bg-gray-50">
-        <View className="pt-14 px-4 pb-2 flex-row items-center">
-          <TouchableOpacity
-            onPress={() => router.back()}
-            className="p-2 -ml-2"
-            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-          >
-            <Ionicons name="arrow-back" size={26} color="#111827" />
-          </TouchableOpacity>
-        </View>
-        <View className="flex-1 justify-center items-center px-6">
-          <ActivityIndicator size="large" />
-          <Text className="text-gray-600 mt-3">Loading applications...</Text>
-        </View>
-      </View>
+      <LoadingScreen
+        onBack={() => router.back()}
+        message="Loading applications..."
+      />
     );
   }
 
+  const displayTitle = job?.title ?? "Job details";
+
   return (
     <View className="flex-1 bg-gray-50">
-      <View className="pt-24 px-6 pb-4">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="p-2 -ml-2 mb-3 self-start"
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-        >
-          <Ionicons name="arrow-back" size={26} color="#111827" />
-        </TouchableOpacity>
-        <Text className="text-2xl font-bold text-black" numberOfLines={2}>
-          {title ?? "Applications"}
-        </Text>
-        <Text className="text-base text-gray-600 mt-1">
-          Accept a worker for this job
-        </Text>
-      </View>
+      <BackHeader
+        onBack={() => router.back()}
+        title={displayTitle}
+        subtitle="View applications and accept a worker"
+      />
 
       <ScrollView
         className="flex-1"
         contentContainerStyle={{
           paddingHorizontal: 20,
-          paddingBottom: 24,
-          paddingTop: 16,
+          paddingBottom: 32,
+          paddingTop: 12,
         }}
         showsVerticalScrollIndicator={false}
       >
+        {/* Job summary */}
+        {job && (
+          <Card className="mb-6 p-5 border-gray-200 bg-white">
+            <Text className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+              Your request
+            </Text>
+            <Text className="text-base text-gray-800 leading-6 mb-4">
+              {job.description || "No description."}
+            </Text>
+            <View className="flex-row flex-wrap gap-2">
+              <View className="bg-gray-100 px-3 py-1.5 rounded-lg">
+                <Text className="text-sm font-medium text-gray-700">
+                  {categoryLabel(job.category ?? "")}
+                </Text>
+              </View>
+            </View>
+            {job.address ? (
+              <View className="flex-row items-center mt-3 pt-3 border-t border-gray-100">
+                <Ionicons name="location-outline" size={16} color="#6B7280" />
+                <Text
+                  className="text-sm text-gray-600 ml-2 flex-1"
+                  numberOfLines={2}
+                >
+                  {job.address}
+                </Text>
+              </View>
+            ) : null}
+          </Card>
+        )}
+
+        {/* Applications section */}
+        <Text className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 px-0.5">
+          Applications ({applications.length})
+        </Text>
+
         {applications.length === 0 ? (
-          <Text className="text-gray-500 py-4">No applications yet.</Text>
+          <Card className="p-8 border-gray-200 bg-white">
+            <EmptyState
+              message="No applications yet. Workers will see your job and can apply with a quote."
+              className="py-0"
+            />
+          </Card>
         ) : (
           applications.map((app) => (
-            <Card key={app.id} className="mb-4 p-4">
-              <View className="flex-row justify-between items-start mb-2">
-                <Text className="text-lg font-semibold text-black">
-                  {app.workerName}
-                </Text>
-                <View
-                  className={`px-3 py-1 rounded ${
-                    app.status === "accepted"
-                      ? "bg-green-100"
-                      : app.status === "rejected"
-                        ? "bg-gray-100"
-                        : "bg-blue-100"
-                  }`}
-                >
+            <Card
+              key={app.id}
+              className="mb-4 p-5 border-gray-200 bg-white overflow-hidden"
+            >
+              <View className="flex-row justify-between items-start gap-3 mb-4">
+                <View className="flex-1 min-w-0">
                   <Text
-                    className={`text-sm font-semibold ${
-                      app.status === "accepted"
-                        ? "text-green-800"
-                        : app.status === "rejected"
-                          ? "text-gray-600"
-                          : "text-blue-800"
-                    }`}
+                    className="text-lg font-semibold text-black"
+                    numberOfLines={1}
                   >
-                    {categoryLabel(app.status)}
+                    {app.workerName}
                   </Text>
+                  <View className="flex-row items-center mt-1.5 gap-4">
+                    <View className="flex-row items-center">
+                      <Ionicons name="call-outline" size={14} color="#6B7280" />
+                      <Text className="text-sm text-gray-600 ml-1.5">
+                        {app.workerPhone || "Not provided"}
+                      </Text>
+                    </View>
+                    <View className="flex-row items-center">
+                      <Text className="text-sm font-semibold text-black">
+                        ${app.proposedPrice.toFixed(2)}
+                      </Text>
+                      <Text className="text-xs text-gray-500 ml-0.5">
+                        quote
+                      </Text>
+                    </View>
+                  </View>
                 </View>
+                <StatusBadge
+                  status={app.status}
+                  label={categoryLabel(app.status)}
+                />
               </View>
-              <Text className="text-base text-gray-600 mb-1">
-                Phone:{" "}
-                {app.workerPhone == "" ? "Not Provided." : app.workerPhone}
-              </Text>
-              <Text className="text-base text-gray-600 mb-3">
-                Proposed price: ${app.proposedPrice.toFixed(2)}
-              </Text>
               {app.status === "pending" && (
                 <PrimaryButton
                   onPress={() => handleAccept(app)}
                   disabled={acceptingId !== null}
                   loading={acceptingId === app.id}
                   size="sm"
+                  className="mt-1"
                 >
-                  Accept
+                  Accept this worker
                 </PrimaryButton>
               )}
             </Card>

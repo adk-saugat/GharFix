@@ -16,6 +16,7 @@ import { Input } from "@/components/Input";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { Card } from "@/components/Card";
+import { routes } from "@/utils/routes";
 
 export default function RequestService() {
   const router = useRouter();
@@ -25,6 +26,13 @@ export default function RequestService() {
   const [address, setAddress] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const resetForm = () => {
+    setTitle("");
+    setDescription("");
+    setCategory(null);
+    setAddress("");
+  };
 
   async function handleSubmit() {
     if (!title.trim() || !description.trim() || !category || !address.trim()) {
@@ -47,16 +55,7 @@ export default function RequestService() {
         address: address.trim(),
       });
       Alert.alert("Request added", "Your service request has been submitted.", [
-        {
-          text: "OK",
-          onPress: () => {
-            setTitle("");
-            setDescription("");
-            setCategory(null);
-            setAddress("");
-            router.replace("/customer/dashboard");
-          },
-        },
+        { text: "OK", onPress: () => { resetForm(); router.replace(routes.customer.dashboard); } },
       ]);
     } catch (e) {
       setError((e as Error).message ?? "Failed to submit request.");

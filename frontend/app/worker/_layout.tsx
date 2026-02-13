@@ -51,6 +51,19 @@ const WorkerLayout = () => {
         }}
       />
       <Tabs.Screen
+        name="applied"
+        options={{
+          title: "Applied",
+          tabBarIcon: ({ focused }) => (
+            <Ionicons
+              name={focused ? "document-text" : "document-text-outline"}
+              size={24}
+              color={focused ? "#000000" : "#9CA3AF"}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
           title: "Profile",

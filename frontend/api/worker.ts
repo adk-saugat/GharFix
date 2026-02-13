@@ -1,8 +1,15 @@
+/** Worker APIs: profile, jobs, apply, add profile */
 import { getToken } from "./storage";
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
+const BASE_URL =
+  process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
 
-export type { JobItem, WorkerProfile, MyJobApplication } from "./types";
+export type {
+  JobItem,
+  WorkerProfile,
+  MyJobApplication,
+  AppliedJobItem,
+} from "./types";
 
 export async function getWorkerProfile() {
   const token = await getToken();
@@ -24,6 +31,20 @@ export async function getJobs() {
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     throw new Error(data?.error ?? "Failed to load jobs");
+  }
+  return data.jobs ?? [];
+}
+
+export async function getAppliedJobs(): Promise<
+  import("./types").AppliedJobItem[]
+> {
+  const token = await getToken();
+  const res = await fetch(`${BASE_URL}/worker/jobs/applied`, {
+    headers: { Authorization: token ?? "" },
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data?.error ?? "Failed to load applied jobs");
   }
   return data.jobs ?? [];
 }
@@ -51,6 +72,29 @@ export async function getJob(id: string): Promise<JobDetailResponse> {
   };
 }
 
+export type AddWorkerProfilePayload = {
+  userId: string;
+  skills: string[];
+  hourlyRate: number;
+};
+
+export async function addWorkerProfile(payload: AddWorkerProfilePayload) {
+  const token = await getToken();
+  const res = await fetch(`${BASE_URL}/worker/profile`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: token ?? "",
+    },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data?.error ?? "Failed to create worker profile");
+  }
+  return data;
+}
+
 export async function applyForJob(jobId: string, proposedPrice: number) {
   const token = await getToken();
   const res = await fetch(
@@ -62,7 +106,7 @@ export async function applyForJob(jobId: string, proposedPrice: number) {
         Authorization: token ?? "",
       },
       body: JSON.stringify({ proposedPrice }),
-    }
+    },
   );
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {

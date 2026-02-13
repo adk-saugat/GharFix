@@ -1,3 +1,4 @@
+/** Auth: register (customer/worker) and login */
 const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
 
 type RegisterPayload = {

@@ -11,7 +11,9 @@ import { useRouter } from "expo-router";
 import { getJobs, type JobItem } from "@/api/worker";
 import { JOB_CATEGORIES, categoryLabel } from "@/constants/categories";
 import { ScreenHeader } from "@/components/ScreenHeader";
-import { Card } from "@/components/Card";
+import { WorkerJobCard } from "@/components/WorkerJobCard";
+import { EmptyState } from "@/components/EmptyState";
+import { routes } from "@/utils/routes";
 
 export default function Services() {
   const router = useRouter();
@@ -28,26 +30,22 @@ export default function Services() {
   }, []);
 
   const filteredJobs = useMemo(() => {
-    let list = jobs;
     const q = searchQuery.trim().toLowerCase();
-    const category = skillFilter?.trim().toLowerCase() || null;
-
-    if (category) {
-      list = list.filter(
-        (j) => (j.category ?? "").trim().toLowerCase() === category
-      );
-    }
+    const cat = skillFilter?.trim().toLowerCase() ?? null;
+    let list = jobs;
+    if (cat) list = list.filter((j) => (j.category ?? "").trim().toLowerCase() === cat);
     if (q) {
       list = list.filter(
         (j) =>
-          (j.title ?? "").toLowerCase().includes(q) ||
-          (j.category ?? "").toLowerCase().includes(q) ||
-          (j.description ?? "").toLowerCase().includes(q) ||
-          (j.username ?? "").toLowerCase().includes(q)
+          [j.title, j.category, j.description, j.username].some(
+            (val) => (val ?? "").toLowerCase().includes(q)
+          )
       );
     }
     return list;
   }, [jobs, searchQuery, skillFilter]);
+
+  const goToJob = (jobId: string) => router.push(routes.worker.job(jobId));
 
   return (
     <View className="flex-1 bg-white">
@@ -117,40 +115,18 @@ export default function Services() {
               <Text className="text-gray-500 mt-3">Loading jobs...</Text>
             </View>
           ) : filteredJobs.length === 0 ? (
-            <Text className="text-gray-500 text-center py-8">
-              {jobs.length === 0 ? "No jobs available" : "No matches"}
-            </Text>
+            <EmptyState
+              message={jobs.length === 0 ? "No jobs available" : "No matches"}
+              className="py-8"
+            />
           ) : (
             filteredJobs.map((job) => (
-              <TouchableOpacity
+              <WorkerJobCard
                 key={job.id}
-                onPress={() => router.push(`/worker/job/${job.id}`)}
-                activeOpacity={0.85}
-              >
-                <Card className="mb-3">
-                  <View className="flex-row justify-between items-start mb-2">
-                    <Text className="text-xl font-semibold text-black flex-1">
-                      {job.title}
-                    </Text>
-                    <View className="bg-blue-100 px-3 py-1 rounded">
-                      <Text className="text-blue-800 text-sm font-semibold">
-                        {categoryLabel(job.status || "New")}
-                      </Text>
-                    </View>
-                  </View>
-                  <Text className="text-base text-gray-600 mb-1">
-                    Category: {categoryLabel(job.category ?? "")}
-                  </Text>
-                  <Text className="text-base text-gray-600 mb-2">
-                    Customer: {job.username}
-                  </Text>
-                  <View className="flex-row justify-end w-full">
-                    <Text className="text-base font-semibold text-gray-500">
-                      View details →
-                    </Text>
-                  </View>
-                </Card>
-              </TouchableOpacity>
+                job={job}
+                onPress={() => goToJob(job.id)}
+                className="mb-3"
+              />
             ))
           )}
         </View>

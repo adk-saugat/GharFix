@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -6,26 +6,37 @@ import {
   ScrollView,
   ActivityIndicator,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import { getMyJobs, type JobItem } from "@/api/customer";
 import { ScreenHeader } from "@/components/ScreenHeader";
-import { Card } from "@/components/Card";
 import { CustomerJobCard } from "@/components/CustomerJobCard";
 import { PrimaryButton } from "@/components/PrimaryButton";
+import { ActivityItem } from "@/components/ActivityItem";
+import { EmptyState } from "@/components/EmptyState";
+import { routes } from "@/utils/routes";
 
 const MY_JOBS_PREVIEW_COUNT = 3;
+
+function fetchJobs(setJobs: (j: JobItem[]) => void, setLoading: (v: boolean) => void) {
+  setLoading(true);
+  getMyJobs()
+    .then(setJobs)
+    .catch(() => setJobs([]))
+    .finally(() => setLoading(false));
+}
 
 export default function CustomerDashboard() {
   const router = useRouter();
   const [jobs, setJobs] = useState<JobItem[]>([]);
   const [jobsLoading, setJobsLoading] = useState(true);
 
-  useEffect(() => {
-    getMyJobs()
-      .then(setJobs)
-      .catch(() => setJobs([]))
-      .finally(() => setJobsLoading(false));
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchJobs(setJobs, setJobsLoading);
+    }, [])
+  );
+
+  const goToJob = (jobId: string) => router.push(routes.customer.job(jobId));
 
   return (
     <View className="flex-1 bg-white">
@@ -38,7 +49,7 @@ export default function CustomerDashboard() {
       <ScrollView className="flex-1">
         <View className="px-6 py-2">
           <PrimaryButton
-            onPress={() => router.push("/customer/requestService")}
+            onPress={() => router.push(routes.customer.requestService)}
             className="mb-6 px-6"
           >
             Request Service
@@ -48,53 +59,27 @@ export default function CustomerDashboard() {
             Recent Activity
           </Text>
 
-          <Card className="mb-3">
-            <View className="flex-row items-start gap-3">
-              <View className="w-2 h-2 rounded-full bg-blue-500 mt-2" />
-              <View className="flex-1">
-                <Text className="text-base font-medium text-black">
-                  John Smith accepted your Plumbing repair request
-                </Text>
-                <Text className="text-sm text-gray-500 mt-0.5">
-                  Jan 24, 2026 · 10:30 AM
-                </Text>
-              </View>
-            </View>
-          </Card>
-
-          <Card className="mb-3">
-            <View className="flex-row items-start gap-3">
-              <View className="w-2 h-2 rounded-full bg-green-500 mt-2" />
-              <View className="flex-1">
-                <Text className="text-base font-medium text-black">
-                  Electrical Work scheduled with Sarah Johnson
-                </Text>
-                <Text className="text-sm text-gray-500 mt-0.5">
-                  Jan 23, 2026 · 3:15 PM
-                </Text>
-              </View>
-            </View>
-          </Card>
-
-          <Card className="mb-6">
-            <View className="flex-row items-start gap-3">
-              <View className="w-2 h-2 rounded-full bg-gray-400 mt-2" />
-              <View className="flex-1">
-                <Text className="text-base font-medium text-black">
-                  Carpentry job completed by Mike Davis
-                </Text>
-                <Text className="text-sm text-gray-500 mt-0.5">
-                  Jan 20, 2026 · 2:00 PM
-                </Text>
-              </View>
-            </View>
-          </Card>
+          <ActivityItem
+            title="John Smith accepted your Plumbing repair request"
+            date="Jan 24, 2026 · 10:30 AM"
+            dotColor="bg-blue-500"
+          />
+          <ActivityItem
+            title="Electrical Work scheduled with Sarah Johnson"
+            date="Jan 23, 2026 · 3:15 PM"
+            dotColor="bg-green-500"
+          />
+          <ActivityItem
+            title="Carpentry job completed by Mike Davis"
+            date="Jan 20, 2026 · 2:00 PM"
+            dotColor="bg-gray-400"
+          />
 
           <View className="flex-row justify-between items-center mb-3">
             <Text className="text-2xl font-bold text-black">My Jobs</Text>
             {jobs.length > 0 && (
               <TouchableOpacity
-                onPress={() => router.push("/customer/myJobs")}
+                onPress={() => router.push(routes.customer.myJobs)}
                 hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               >
                 <Text className="text-base font-semibold text-gray-600">
@@ -110,19 +95,16 @@ export default function CustomerDashboard() {
               <Text className="text-gray-500 mt-2">Loading your jobs...</Text>
             </View>
           ) : jobs.length === 0 ? (
-            <Text className="text-gray-500 py-4 mb-6">
-              You haven't posted any jobs yet.
-            </Text>
+            <EmptyState
+              message="You haven't posted any jobs yet."
+              className="py-4 mb-6"
+            />
           ) : (
             jobs.slice(0, MY_JOBS_PREVIEW_COUNT).map((job) => (
               <CustomerJobCard
                 key={job.id}
                 job={job}
-                onPress={() =>
-                  router.push(
-                    `/customer/job/${job.id}` as import("expo-router").Href
-                  )
-                }
+                onPress={() => goToJob(job.id)}
                 className="mb-3"
               />
             ))

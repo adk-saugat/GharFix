@@ -60,3 +60,10 @@ export type MyJobApplication = {
   status: string;
   createdAt: string;
 };
+
+/** Job the worker has applied to (from GET /worker/jobs/applied). */
+export type AppliedJobItem = Omit<JobItem, "customerId"> & {
+  customerId?: string;
+  applicationStatus: string;
+  proposedPrice: number;
+};

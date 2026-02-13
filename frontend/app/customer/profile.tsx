@@ -9,6 +9,7 @@ import {
 import { useRouter } from "expo-router";
 import { getCustomerProfile, type CustomerProfile } from "@/api/customer";
 import { clearAuth } from "@/api/storage";
+import { routes } from "@/utils/routes";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { Card } from "@/components/Card";
 import { DetailRow } from "@/components/DetailRow";
@@ -29,7 +30,7 @@ export default function CustomerProfile() {
 
   async function handleLogout() {
     await clearAuth();
-    router.replace("/");
+    router.replace(routes.home);
   }
 
   if (loading) {
@@ -45,7 +46,7 @@ export default function CustomerProfile() {
     return (
       <View className="flex-1 bg-gray-50 justify-center items-center px-6">
         <Text className="text-red-600 text-center mb-4 text-base">{error}</Text>
-        <PrimaryButton onPress={() => router.replace("/")}>
+        <PrimaryButton onPress={() => router.replace(routes.home)}>
           Go home
         </PrimaryButton>
       </View>

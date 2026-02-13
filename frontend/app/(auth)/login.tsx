@@ -1,35 +1,42 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { login } from "@/api/auth";
 import { setAuth } from "@/api/storage";
 import { Input } from "@/components/Input";
+import { PasswordInput } from "@/components/PasswordInput";
 import { PrimaryButton } from "@/components/PrimaryButton";
+import { routes } from "@/utils/routes";
+
+function getDashboardForRole(role: string): string | null {
+  if (role === "customer") return routes.customer.dashboard;
+  if (role === "worker") return routes.worker.dashboard;
+  return null;
+}
 
 export default function GharfixLogin() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const router = useRouter();
 
   async function handleLogin() {
-    if (!email.trim() || !password)
-      return setError("Email and password are required.");
+    if (!email.trim() || !password) {
+      setError("Email and password are required.");
+      return;
+    }
     setError("");
     setLoading(true);
     try {
       const data = await login({ email: email.trim(), password });
       await setAuth(data.token, data.user);
 
-      if (data.user.role === "customer") router.replace("/customer/dashboard");
-      else if (data.user.role === "worker") router.replace("/worker/dashboard");
-      else {
+      const dashboard = getDashboardForRole(data.user.role);
+      if (dashboard) {
+        router.replace(dashboard as import("expo-router").Href);
+      } else {
         setError("Invalid user role.");
-        setLoading(false);
-        return;
       }
     } catch (e) {
       setError((e as Error).message ?? "Login failed.");
@@ -74,26 +81,11 @@ export default function GharfixLogin() {
                 autoCapitalize="none"
               />
 
-              <View className="mb-4 relative">
-                <Input
-                  className="pr-12"
-                  placeholder="Password"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry={!showPassword}
-                />
-                <TouchableOpacity
-                  onPress={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-4 top-0 bottom-0 justify-center"
-                  hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
-                >
-                  <Ionicons
-                    name={showPassword ? "eye-off" : "eye"}
-                    size={22}
-                    color="#4B5563"
-                  />
-                </TouchableOpacity>
-              </View>
+              <PasswordInput
+                value={password}
+                onChangeText={setPassword}
+                className="mb-4"
+              />
 
               {error ? (
                 <Text className="text-red-600 text-sm mb-4">{error}</Text>
@@ -112,7 +104,7 @@ export default function GharfixLogin() {
                 <Text className="text-gray-500 text-base">
                   Don't have an account?{" "}
                 </Text>
-                <TouchableOpacity onPress={() => router.push("/register")}>
+                <TouchableOpacity onPress={() => router.push(routes.register)}>
                   <Text className="text-black text-base font-semibold">
                     Sign up
                   </Text>

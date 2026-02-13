@@ -1,21 +1,28 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import { View, Text, ScrollView, ActivityIndicator } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import { getMyJobs, type JobItem } from "@/api/customer";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { CustomerJobCard } from "@/components/CustomerJobCard";
+import { EmptyState } from "@/components/EmptyState";
+import { routes } from "@/utils/routes";
+
+function fetchJobs(setJobs: (j: JobItem[]) => void, setLoading: (v: boolean) => void) {
+  setLoading(true);
+  getMyJobs()
+    .then(setJobs)
+    .catch(() => setJobs([]))
+    .finally(() => setLoading(false));
+}
 
 export default function MyJobsScreen() {
   const router = useRouter();
   const [jobs, setJobs] = useState<JobItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    getMyJobs()
-      .then(setJobs)
-      .catch(() => setJobs([]))
-      .finally(() => setLoading(false));
-  }, []);
+  useFocusEffect(useCallback(() => fetchJobs(setJobs, setLoading), []));
+
+  const goToJob = (jobId: string) => router.push(routes.customer.job(jobId));
 
   return (
     <View className="flex-1 bg-white">
@@ -33,19 +40,13 @@ export default function MyJobsScreen() {
               <Text className="text-gray-600 mt-3">Loading jobs...</Text>
             </View>
           ) : jobs.length === 0 ? (
-            <Text className="text-gray-500 py-8">
-              You haven't posted any jobs yet.
-            </Text>
+            <EmptyState message="You haven't posted any jobs yet." className="py-8" />
           ) : (
             jobs.map((job) => (
               <CustomerJobCard
                 key={job.id}
                 job={job}
-                onPress={() =>
-                  router.push(
-                    `/customer/job/${job.id}` as import("expo-router").Href,
-                  )
-                }
+                onPress={() => goToJob(job.id)}
                 className="mb-3"
               />
             ))

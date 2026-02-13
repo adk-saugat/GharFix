@@ -2,40 +2,72 @@ import React, { useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { registerCustomer, registerWorker } from "@/api/auth";
+import { registerCustomer, registerWorker, login } from "@/api/auth";
+import { setAuth } from "@/api/storage";
+import { addWorkerProfile } from "@/api/worker";
 import { Input } from "@/components/Input";
+import { PasswordInput } from "@/components/PasswordInput";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { JOB_CATEGORIES, categoryLabel } from "@/constants/categories";
+import { routes } from "@/utils/routes";
+
+type UserType = "customer" | "worker";
 
 export default function GharfixRegister() {
+  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [userType, setUserType] = useState<"customer" | "worker">("customer");
+  const [userType, setUserType] = useState<UserType>("customer");
   const [hourlyRate, setHourlyRate] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [showSkillsDropdown, setShowSkillsDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const router = useRouter();
+
+  const payload = {
+    username: name.trim(),
+    email: email.trim(),
+    password,
+    phone: phone.trim() || undefined,
+  };
+
+  async function registerAndGoToDashboard(isCustomer: boolean) {
+    const loginData = await login({ email: payload.email, password: payload.password });
+    await setAuth(loginData.token, loginData.user);
+    if (isCustomer) {
+      router.replace(routes.customer.dashboard);
+    } else {
+      await addWorkerProfile({
+        userId: loginData.user.id,
+        skills: selectedSkills,
+        hourlyRate: parseInt(hourlyRate.trim(), 10),
+      });
+      router.replace(routes.worker.dashboard);
+    }
+  }
 
   async function handleRegister() {
-    if (!name.trim() || !email.trim() || !password)
-      return setError("Name, email and password are required.");
+    if (!name.trim() || !email.trim() || !password) {
+      setError("Name, email and password are required.");
+      return;
+    }
+    if (userType === "worker") {
+      if (selectedSkills.length === 0) { setError("Select at least one skill."); return; }
+      const rate = parseInt(hourlyRate.trim(), 10);
+      if (!hourlyRate.trim() || isNaN(rate) || rate < 0) { setError("Enter a valid hourly rate."); return; }
+    }
     setError("");
     setLoading(true);
     try {
-      const payload = {
-        username: name.trim(),
-        email: email.trim(),
-        password,
-        phone: phone.trim() || undefined,
-      };
-      if (userType === "customer") await registerCustomer(payload);
-      else await registerWorker(payload);
-      router.replace("/login");
+      if (userType === "customer") {
+        await registerCustomer(payload);
+        await registerAndGoToDashboard(true);
+      } else {
+        await registerWorker(payload);
+        await registerAndGoToDashboard(false);
+      }
     } catch (e) {
       setError((e as Error).message ?? "Registration failed.");
     } finally {
@@ -43,13 +75,11 @@ export default function GharfixRegister() {
     }
   }
 
-  const toggleSkill = (skill: string) => {
-    if (selectedSkills.includes(skill)) {
-      setSelectedSkills(selectedSkills.filter((s) => s !== skill));
-    } else {
-      setSelectedSkills([...selectedSkills, skill]);
-    }
-  };
+  function toggleSkill(skill: string) {
+    setSelectedSkills((prev) =>
+      prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill]
+    );
+  }
 
   return (
     <ScrollView
@@ -159,26 +189,11 @@ export default function GharfixRegister() {
               keyboardType="phone-pad"
             />
 
-            <View className="mb-4 relative">
-              <Input
-                className="pr-12"
-                placeholder="Password"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-              />
-              <TouchableOpacity
-                onPress={() => setShowPassword((prev) => !prev)}
-                className="absolute right-4 top-0 bottom-0 justify-center"
-                hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
-              >
-                <Ionicons
-                  name={showPassword ? "eye-off" : "eye"}
-                  size={22}
-                  color="#4B5563"
-                />
-              </TouchableOpacity>
-            </View>
+            <PasswordInput
+              value={password}
+              onChangeText={setPassword}
+              className="mb-4"
+            />
 
             {userType === "worker" && (
               <>
@@ -255,7 +270,7 @@ export default function GharfixRegister() {
               <Text className="text-gray-500 text-base">
                 Already have an account?{" "}
               </Text>
-              <TouchableOpacity onPress={() => router.push("/login")}>
+              <TouchableOpacity onPress={() => router.push(routes.login)}>
                 <Text className="text-black text-base font-semibold">
                   Log in
                 </Text>

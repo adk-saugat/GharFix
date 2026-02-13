@@ -111,3 +111,50 @@ func AcceptApplication(applicationID, jobID, customerID string) error {
 }
 
 var ErrNoRows = errors.New("no rows affected")
+
+// AppliedJob is a job the worker has applied to, with application details.
+type AppliedJob struct {
+	ID                string    `json:"id"`
+	CustomerID        string    `json:"customerId"`
+	Username          string    `json:"username"`
+	Phone             string    `json:"phone"`
+	Title             string    `json:"title"`
+	Description       string    `json:"description"`
+	Category          string    `json:"category"`
+	Address           string    `json:"address"`
+	Status            string    `json:"status"`
+	CreatedAt         time.Time `json:"createdAt"`
+	ApplicationStatus string    `json:"applicationStatus"`
+	ProposedPrice     float64   `json:"proposedPrice"`
+}
+
+// FetchJobsAppliedByWorker returns all jobs the worker has applied to, with application status and proposed price.
+func FetchJobsAppliedByWorker(workerID string) ([]AppliedJob, error) {
+	query := `
+		SELECT j.id, j.customer_id, u.username, COALESCE(u.phone, '') AS phone,
+		       j.title, j.description, j.category, j.address, j.status, j.created_at,
+		       ja.status AS application_status, ja.proposed_price
+		FROM job_applications ja
+		JOIN jobs j ON ja.job_id = j.id
+		JOIN users u ON j.customer_id = u.id
+		WHERE ja.worker_id = $1
+		ORDER BY ja.created_at DESC
+	`
+	rows, err := config.Pool.Query(context.Background(), query, workerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var list []AppliedJob
+	for rows.Next() {
+		var a AppliedJob
+		err := rows.Scan(&a.ID, &a.CustomerID, &a.Username, &a.Phone, &a.Title, &a.Description,
+			&a.Category, &a.Address, &a.Status, &a.CreatedAt, &a.ApplicationStatus, &a.ProposedPrice)
+		if err != nil {
+			return nil, err
+		}
+		list = append(list, a)
+	}
+	return list, nil
+}

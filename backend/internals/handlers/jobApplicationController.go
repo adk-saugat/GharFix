@@ -69,6 +69,20 @@ func GetJobApplications(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"applications": applications})
 }
 
+func GetMyApplications(ctx *gin.Context) {
+	workerID, exists := ctx.Get("userId")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized."})
+		return
+	}
+	jobs, err := models.FetchJobsAppliedByWorker(workerID.(string))
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Could not fetch applications."})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"jobs": jobs})
+}
+
 func AcceptApplication(ctx *gin.Context) {
 	jobID := ctx.Param("id")
 	applicationID := ctx.Param("applicationId")

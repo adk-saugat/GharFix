@@ -32,6 +32,7 @@ func RegisterRoutes(server *gin.Engine){
 	protectedWorkerRoute.GET("/profile", handlers.GetWorkerProfile)
 
 	protectedWorkerRoute.GET("/jobs", handlers.GetAllJobs)
+	protectedWorkerRoute.GET("/jobs/applied", handlers.GetMyApplications)
 	protectedWorkerRoute.GET("/jobs/:id", handlers.GetJobByID)
 	protectedWorkerRoute.POST("/jobs/:id/apply", handlers.ApplyForJob)
 

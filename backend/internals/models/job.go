@@ -61,7 +61,7 @@ func scanJobWithCustomer(row interface {
 }
 
 func FetchAllJobs() (*[]JobWithCustomerDetails, error) {
-	rows, err := config.Pool.Query(context.Background(), jobWithCustomerQuery)
+	rows, err := config.Pool.Query(context.Background(), jobWithCustomerQuery+" WHERE jobs.status = 'open' ORDER BY jobs.created_at DESC")
 	if err != nil {
 		return nil, err
 	}

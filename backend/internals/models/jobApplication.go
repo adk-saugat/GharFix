@@ -107,6 +107,9 @@ func AcceptApplication(applicationID, jobID, customerID string) error {
 	_, _ = config.Pool.Exec(context.Background(),
 		`UPDATE job_applications SET status = 'rejected' WHERE job_id = $1 AND id != $2`,
 		jobID, applicationID)
+	// Mark job as assigned
+	_, _ = config.Pool.Exec(context.Background(),
+		`UPDATE jobs SET status = 'assigned', updated_at = NOW() WHERE id = $1`, jobID)
 	return nil
 }
 

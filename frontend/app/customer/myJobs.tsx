@@ -6,6 +6,8 @@ import { ScreenHeader } from "@/components/ScreenHeader";
 import { CustomerJobCard } from "@/components/CustomerJobCard";
 import { EmptyState } from "@/components/EmptyState";
 import { routes } from "@/utils/routes";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 function fetchJobs(setJobs: (j: JobItem[]) => void, setLoading: (v: boolean) => void) {
   setLoading(true);
@@ -17,12 +19,17 @@ function fetchJobs(setJobs: (j: JobItem[]) => void, setLoading: (v: boolean) => 
 
 export default function MyJobsScreen() {
   const router = useRouter();
+  const { isChecking } = useAuthGuard("customer");
   const [jobs, setJobs] = useState<JobItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useFocusEffect(useCallback(() => fetchJobs(setJobs, setLoading), []));
 
   const goToJob = (jobId: string) => router.push(routes.customer.job(jobId));
+
+  if (isChecking) {
+    return <LoadingScreen message="Verifying authentication..." />;
+  }
 
   return (
     <View className="flex-1 bg-white">

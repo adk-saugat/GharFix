@@ -67,3 +67,12 @@ export type AppliedJobItem = Omit<JobItem, "customerId"> & {
   applicationStatus: string;
   proposedPrice: number;
 };
+
+export type Message = {
+  id: string;
+  jobId: string;
+  senderId: string;
+  receiverId: string;
+  content: string;
+  createdAt: string;
+};

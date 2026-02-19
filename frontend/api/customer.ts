@@ -3,9 +3,7 @@ import { getToken } from "./storage";
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
 
-export type { CustomerProfile } from "./types";
-export type { JobApplicationItem } from "./types";
-export type { JobItem } from "./types";
+export type { CustomerProfile, JobApplicationItem, JobItem, Message } from "./types";
 
 export async function getCustomerProfile() {
   const token = await getToken();
@@ -62,4 +60,42 @@ export async function acceptApplication(
   if (!res.ok) {
     throw new Error(data?.error ?? "Failed to accept application");
   }
+}
+
+export async function getJobMessages(
+  jobId: string
+): Promise<import("./types").Message[]> {
+  const token = await getToken();
+  const res = await fetch(
+    `${BASE_URL}/job/${encodeURIComponent(jobId)}/messages`,
+    { headers: { Authorization: token ?? "" } }
+  );
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data?.error ?? "Failed to load messages");
+  }
+  return data.messages ?? [];
+}
+
+export async function sendJobMessage(
+  jobId: string,
+  content: string
+): Promise<import("./types").Message> {
+  const token = await getToken();
+  const res = await fetch(
+    `${BASE_URL}/job/${encodeURIComponent(jobId)}/messages`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: token ?? "",
+      },
+      body: JSON.stringify({ content }),
+    }
+  );
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data?.error ?? "Failed to send message");
+  }
+  return data.message;
 }

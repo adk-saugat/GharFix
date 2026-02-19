@@ -17,9 +17,12 @@ import { PrimaryButton } from "@/components/PrimaryButton";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { Card } from "@/components/Card";
 import { routes } from "@/utils/routes";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 export default function RequestService() {
   const router = useRouter();
+  const { isChecking } = useAuthGuard("customer");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<string | null>(null);
@@ -62,6 +65,10 @@ export default function RequestService() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (isChecking) {
+    return <LoadingScreen message="Verifying authentication..." />;
   }
 
   return (

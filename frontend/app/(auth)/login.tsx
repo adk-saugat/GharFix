@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { login } from "@/api/auth";
 import { setAuth } from "@/api/storage";
@@ -7,6 +7,7 @@ import { Input } from "@/components/Input";
 import { PasswordInput } from "@/components/PasswordInput";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { routes } from "@/utils/routes";
+import { useRedirectIfAuthenticated } from "@/hooks/useRedirectIfAuthenticated";
 
 function getDashboardForRole(role: string): string | null {
   if (role === "customer") return routes.customer.dashboard;
@@ -16,10 +17,19 @@ function getDashboardForRole(role: string): string | null {
 
 export default function GharfixLogin() {
   const router = useRouter();
+  const { isChecking } = useRedirectIfAuthenticated();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  if (isChecking) {
+    return (
+      <View className="flex-1 bg-gray-50 justify-center items-center">
+        <ActivityIndicator size="large" color="#000" />
+      </View>
+    );
+  }
 
   async function handleLogin() {
     if (!email.trim() || !password) {

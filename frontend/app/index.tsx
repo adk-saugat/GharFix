@@ -1,10 +1,20 @@
 import React from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { routes } from "@/utils/routes";
+import { useRedirectIfAuthenticated } from "@/hooks/useRedirectIfAuthenticated";
 
 export default function Home() {
   const router = useRouter();
+  const { isChecking } = useRedirectIfAuthenticated();
+
+  if (isChecking) {
+    return (
+      <View className="flex-1 bg-gray-50 justify-center items-center">
+        <ActivityIndicator size="large" color="#000" />
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-gray-50">

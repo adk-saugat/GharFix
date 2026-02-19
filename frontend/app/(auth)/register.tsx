@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { registerCustomer, registerWorker, login } from "@/api/auth";
@@ -10,11 +10,13 @@ import { PasswordInput } from "@/components/PasswordInput";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { JOB_CATEGORIES, categoryLabel } from "@/constants/categories";
 import { routes } from "@/utils/routes";
+import { useRedirectIfAuthenticated } from "@/hooks/useRedirectIfAuthenticated";
 
 type UserType = "customer" | "worker";
 
 export default function GharfixRegister() {
   const router = useRouter();
+  const { isChecking } = useRedirectIfAuthenticated();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -25,6 +27,14 @@ export default function GharfixRegister() {
   const [showSkillsDropdown, setShowSkillsDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  if (isChecking) {
+    return (
+      <View className="flex-1 bg-gray-50 justify-center items-center">
+        <ActivityIndicator size="large" color="#000" />
+      </View>
+    );
+  }
 
   const payload = {
     username: name.trim(),

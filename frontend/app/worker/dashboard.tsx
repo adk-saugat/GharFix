@@ -8,11 +8,14 @@ import { Card } from "@/components/Card";
 import { WorkerJobCard } from "@/components/WorkerJobCard";
 import { EmptyState } from "@/components/EmptyState";
 import { routes } from "@/utils/routes";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 const PREVIEW_JOBS_COUNT = 2;
 
 export default function WorkerDashboard() {
   const router = useRouter();
+  const { isChecking } = useAuthGuard("worker");
   const [jobs, setJobs] = useState<JobItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -27,6 +30,10 @@ export default function WorkerDashboard() {
       .catch(() => setJobs([]))
       .finally(() => setLoading(false));
   }, []);
+
+  if (isChecking) {
+    return <LoadingScreen message="Verifying authentication..." />;
+  }
 
   const previewJobs = jobs.slice(0, PREVIEW_JOBS_COUNT);
   const goToJob = (jobId: string) => router.push(routes.worker.job(jobId));

@@ -16,6 +16,7 @@ import { BackHeader } from "@/components/BackHeader";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { NotFoundScreen } from "@/components/NotFoundScreen";
 import { routes } from "@/utils/routes";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 const goBack = (router: ReturnType<typeof useRouter>) =>
   router.replace(routes.worker.services);
@@ -23,6 +24,7 @@ const goBack = (router: ReturnType<typeof useRouter>) =>
 export default function JobDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { isChecking } = useAuthGuard("worker");
   const [job, setJob] = useState<JobItem | null>(null);
   const [myApplication, setMyApplication] = useState<MyJobApplication | null>(
     null,
@@ -82,6 +84,10 @@ export default function JobDetail() {
     } finally {
       setApplyLoading(false);
     }
+  }
+
+  if (isChecking) {
+    return <LoadingScreen message="Verifying authentication..." />;
   }
 
   if (loading) {

@@ -17,10 +17,12 @@ import { LoadingScreen } from "@/components/LoadingScreen";
 import { StatusBadge } from "@/components/StatusBadge";
 import { EmptyState } from "@/components/EmptyState";
 import { routes } from "@/utils/routes";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 export default function CustomerJobDetail() {
   const { id } = useLocalSearchParams<{ id: string; title?: string }>();
   const router = useRouter();
+  const { isChecking } = useAuthGuard("customer");
   const [job, setJob] = useState<JobItem | null>(null);
   const [applications, setApplications] = useState<JobApplicationItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,6 +71,10 @@ export default function CustomerJobDetail() {
     } finally {
       setAcceptingId(null);
     }
+  }
+
+  if (isChecking) {
+    return <LoadingScreen message="Verifying authentication..." />;
   }
 
   if (loading) {

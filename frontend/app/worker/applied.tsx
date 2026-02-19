@@ -6,9 +6,12 @@ import { ScreenHeader } from "@/components/ScreenHeader";
 import { WorkerJobCard } from "@/components/WorkerJobCard";
 import { EmptyState } from "@/components/EmptyState";
 import { routes } from "@/utils/routes";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 export default function Applied() {
   const router = useRouter();
+  const { isChecking } = useAuthGuard("worker");
   const [jobs, setJobs] = useState<AppliedJobItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -23,6 +26,10 @@ export default function Applied() {
   );
 
   const goToJob = (jobId: string) => router.push(routes.worker.job(jobId));
+
+  if (isChecking) {
+    return <LoadingScreen message="Verifying authentication..." />;
+  }
 
   return (
     <View className="flex-1 bg-white">

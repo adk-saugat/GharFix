@@ -14,9 +14,12 @@ import { ScreenHeader } from "@/components/ScreenHeader";
 import { WorkerJobCard } from "@/components/WorkerJobCard";
 import { EmptyState } from "@/components/EmptyState";
 import { routes } from "@/utils/routes";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 export default function Services() {
   const router = useRouter();
+  const { isChecking } = useAuthGuard("worker");
   const [jobs, setJobs] = useState<JobItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [workerCategories, setWorkerCategories] = useState<string[]>([]);
@@ -35,6 +38,10 @@ export default function Services() {
       .catch(() => setJobs([]))
       .finally(() => setLoading(false));
   }, []);
+
+  if (isChecking) {
+    return <LoadingScreen message="Verifying authentication..." />;
+  }
 
   const filteredJobs = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();

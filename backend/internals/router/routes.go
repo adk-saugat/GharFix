@@ -20,6 +20,9 @@ func RegisterRoutes(server *gin.Engine){
 	server.POST("/auth/register", handlers.RegisterUser)
 	server.POST("/auth/login", handlers.LoginUser)
 
+	// WebSocket (auth via query param token)
+	server.GET("/ws", middleware.AuthenticateWebSocket, handlers.HandleWebSocketConnection)
+
 	// protected routes
 	protectedRoute := server.Group("/")
 	protectedRoute.Use(middleware.Authenticate)
@@ -35,6 +38,8 @@ func RegisterRoutes(server *gin.Engine){
 	protectedWorkerRoute.GET("/jobs/applied", handlers.GetMyApplications)
 	protectedWorkerRoute.GET("/jobs/:id", handlers.GetJobByID)
 	protectedWorkerRoute.POST("/jobs/:id/apply", handlers.ApplyForJob)
+	protectedWorkerRoute.GET("/jobs/:id/messages", handlers.GetMessages)
+	protectedWorkerRoute.POST("/jobs/:id/messages", handlers.SendMessage)
 
 	// protected customer route
 	protectedCustomerRoute := protectedRoute.Group("/")
@@ -44,5 +49,7 @@ func RegisterRoutes(server *gin.Engine){
 	protectedCustomerRoute.GET("/jobs", handlers.GetMyJobs)
 	protectedCustomerRoute.GET("/job/:id/applications", handlers.GetJobApplications)
 	protectedCustomerRoute.PUT("/job/:id/application/:applicationId/accept", handlers.AcceptApplication)
+	protectedCustomerRoute.GET("/job/:id/messages", handlers.GetMessages)
+	protectedCustomerRoute.POST("/job/:id/messages", handlers.SendMessage)
 	protectedCustomerRoute.GET("/profile", handlers.GetCustomerProfile)
 }

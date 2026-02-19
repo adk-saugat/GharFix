@@ -14,6 +14,8 @@ import { PrimaryButton } from "@/components/PrimaryButton";
 import { ActivityItem } from "@/components/ActivityItem";
 import { EmptyState } from "@/components/EmptyState";
 import { routes } from "@/utils/routes";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 const MY_JOBS_PREVIEW_COUNT = 3;
 
@@ -27,6 +29,7 @@ function fetchJobs(setJobs: (j: JobItem[]) => void, setLoading: (v: boolean) => 
 
 export default function CustomerDashboard() {
   const router = useRouter();
+  const { isChecking } = useAuthGuard("customer");
   const [jobs, setJobs] = useState<JobItem[]>([]);
   const [jobsLoading, setJobsLoading] = useState(true);
 
@@ -37,6 +40,10 @@ export default function CustomerDashboard() {
   );
 
   const goToJob = (jobId: string) => router.push(routes.customer.job(jobId));
+
+  if (isChecking) {
+    return <LoadingScreen message="Verifying authentication..." />;
+  }
 
   return (
     <View className="flex-1 bg-white">

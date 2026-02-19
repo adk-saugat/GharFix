@@ -15,6 +15,8 @@ import { ScreenHeader } from "@/components/ScreenHeader";
 import { Card } from "@/components/Card";
 import { DetailRow } from "@/components/DetailRow";
 import { PrimaryButton } from "@/components/PrimaryButton";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 type Worker = {
   id: string;
@@ -34,6 +36,7 @@ function capitalize(s: string): string {
 }
 
 export default function WorkerProfile() {
+  const { isChecking } = useAuthGuard("worker");
   const [worker, setWorker] = useState<Worker | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -49,6 +52,10 @@ export default function WorkerProfile() {
   async function handleLogout() {
     await clearAuth();
     router.replace(routes.home);
+  }
+
+  if (isChecking) {
+    return <LoadingScreen message="Verifying authentication..." />;
   }
 
   if (loading) {

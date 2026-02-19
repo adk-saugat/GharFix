@@ -9,6 +9,7 @@ export type {
   WorkerProfile,
   MyJobApplication,
   AppliedJobItem,
+  Message,
 } from "./types";
 
 export async function getWorkerProfile() {
@@ -113,4 +114,42 @@ export async function applyForJob(jobId: string, proposedPrice: number) {
     throw new Error(data?.error ?? "Failed to submit application");
   }
   return data;
+}
+
+export async function getJobMessages(
+  jobId: string
+): Promise<import("./types").Message[]> {
+  const token = await getToken();
+  const res = await fetch(
+    `${BASE_URL}/worker/jobs/${encodeURIComponent(jobId)}/messages`,
+    { headers: { Authorization: token ?? "" } }
+  );
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data?.error ?? "Failed to load messages");
+  }
+  return data.messages ?? [];
+}
+
+export async function sendJobMessage(
+  jobId: string,
+  content: string
+): Promise<import("./types").Message> {
+  const token = await getToken();
+  const res = await fetch(
+    `${BASE_URL}/worker/jobs/${encodeURIComponent(jobId)}/messages`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: token ?? "",
+      },
+      body: JSON.stringify({ content }),
+    }
+  );
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data?.error ?? "Failed to send message");
+  }
+  return data.message;
 }

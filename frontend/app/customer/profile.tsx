@@ -14,9 +14,12 @@ import { ScreenHeader } from "@/components/ScreenHeader";
 import { Card } from "@/components/Card";
 import { DetailRow } from "@/components/DetailRow";
 import { PrimaryButton } from "@/components/PrimaryButton";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 export default function CustomerProfile() {
   const router = useRouter();
+  const { isChecking } = useAuthGuard("customer");
   const [user, setUser] = useState<CustomerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -31,6 +34,10 @@ export default function CustomerProfile() {
   async function handleLogout() {
     await clearAuth();
     router.replace(routes.home);
+  }
+
+  if (isChecking) {
+    return <LoadingScreen message="Verifying authentication..." />;
   }
 
   if (loading) {

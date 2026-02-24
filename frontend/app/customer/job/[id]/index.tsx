@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, ScrollView, Alert, TouchableOpacity } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
   getMyJobs,
@@ -28,11 +28,12 @@ export default function CustomerJobDetail() {
   const [loading, setLoading] = useState(true);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchJob = React.useCallback(() => {
     if (!id) {
       setLoading(false);
       return;
     }
+    setLoading(true);
     Promise.all([getMyJobs(), getJobApplications(id)])
       .then(([jobs, apps]) => {
         setJob(jobs.find((j) => j.id === id) ?? null);
@@ -44,6 +45,12 @@ export default function CustomerJobDetail() {
       })
       .finally(() => setLoading(false));
   }, [id]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchJob();
+    }, [fetchJob]),
+  );
 
   async function handleAccept(app: JobApplicationItem) {
     if (!id) return;
@@ -74,7 +81,12 @@ export default function CustomerJobDetail() {
   }
 
   if (isChecking) {
-    return <LoadingScreen message="Verifying authentication..." />;
+    return (
+      <LoadingScreen
+        onBack={() => router.back()}
+        message="Verifying authentication..."
+      />
+    );
   }
 
   if (loading) {
@@ -137,9 +149,35 @@ export default function CustomerJobDetail() {
                 onPress={() => router.push(routes.customer.jobChat(id))}
                 className="flex-row items-center justify-center gap-2 mt-4 pt-4 border-t border-gray-100"
               >
-                <Ionicons name="chatbubble-ellipses-outline" size={20} color="#000" />
-                <Text className="text-base font-semibold text-black">Open chat</Text>
+                <Ionicons
+                  name="chatbubble-ellipses-outline"
+                  size={20}
+                  color="#000"
+                />
+                <Text className="text-base font-semibold text-black">
+                  Open chat
+                </Text>
               </TouchableOpacity>
+            ) : null}
+            {job.status === "completed" && id ? (
+              <View className="mt-4 pt-4 border-t border-gray-100">
+                <View className="py-2 px-3 mb-3 bg-green-50 border border-green-200 rounded-lg">
+                  <Text className="text-sm font-medium text-green-800">
+                    Job completed
+                  </Text>
+                  <Text className="text-xs text-green-700 mt-0.5">
+                    The worker has finished. Please pay to close the job.
+                  </Text>
+                </View>
+                <PrimaryButton
+                  onPress={() => router.push(routes.customer.jobPay(id))}
+                >
+                  {`Pay $${(
+                    applications.find((a) => a.status === "accepted")
+                      ?.proposedPrice ?? 0
+                  ).toFixed(2)}`}
+                </PrimaryButton>
+              </View>
             ) : null}
           </Card>
         )}

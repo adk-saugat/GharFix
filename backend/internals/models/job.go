@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/adk-saugat/gharfix/backend/internals/config"
@@ -97,6 +98,28 @@ func FetchJobByID(id string, customerID *string) (*JobWithCustomerDetails, error
 	}
 	return &jobDetail, nil
 }
+
+// MarkJobComplete sets job status to "completed" if the worker is the accepted worker and job is "assigned".
+func MarkJobComplete(jobID, workerID string) error {
+	query := `
+		UPDATE jobs SET status = 'completed', updated_at = NOW()
+		WHERE id = $1 AND status = 'assigned'
+		AND EXISTS (
+			SELECT 1 FROM job_applications
+			WHERE job_id = $1 AND worker_id = $2 AND status = 'accepted'
+		)
+	`
+	cmd, err := config.Pool.Exec(context.Background(), query, jobID, workerID)
+	if err != nil {
+		return err
+	}
+	if cmd.RowsAffected() == 0 {
+		return ErrJobCompleteFailed
+	}
+	return nil
+}
+
+var ErrJobCompleteFailed = errors.New("job not found, not assigned, or worker not accepted")
 
 func FetchJobsByCustomerID(customerID string) ([]JobWithCustomerDetails, error) {
 	rows, err := config.Pool.Query(context.Background(), jobWithCustomerQuery+" WHERE jobs.customer_id = $1 ORDER BY jobs.created_at DESC", customerID)

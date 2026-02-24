@@ -109,3 +109,29 @@ func AcceptApplication(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{"message": "Application accepted."})
 }
+
+func CompleteJob(ctx *gin.Context) {
+	jobID := ctx.Param("id")
+	if jobID == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Job ID is required."})
+		return
+	}
+	
+	workerID, exists := ctx.Get("userId")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized."})
+		return
+	}
+
+	err := models.MarkJobComplete(jobID, workerID.(string))
+	if err != nil {
+		if errors.Is(err, models.ErrJobCompleteFailed) {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Job cannot be marked complete."})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Could not complete job."})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "Job marked complete."})
+}

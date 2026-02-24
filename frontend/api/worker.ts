@@ -96,6 +96,22 @@ export async function addWorkerProfile(payload: AddWorkerProfilePayload) {
   return data;
 }
 
+export async function markJobComplete(jobId: string) {
+  const token = await getToken();
+  const res = await fetch(
+    `${BASE_URL}/worker/jobs/${encodeURIComponent(jobId)}/complete`,
+    {
+      method: "PUT",
+      headers: { Authorization: token ?? "" },
+    }
+  );
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data?.error ?? "Failed to mark job complete.");
+  }
+  return data;
+}
+
 export async function applyForJob(jobId: string, proposedPrice: number) {
   const token = await getToken();
   const res = await fetch(

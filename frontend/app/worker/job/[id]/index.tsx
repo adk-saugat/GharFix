@@ -5,6 +5,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import {
   getJob,
   applyForJob,
+  markJobComplete,
   type JobItem,
   type MyJobApplication,
 } from "@/api/worker";
@@ -33,6 +34,7 @@ export default function JobDetail() {
   const [proposedPrice, setProposedPrice] = useState("");
   const [applyLoading, setApplyLoading] = useState(false);
   const [applyError, setApplyError] = useState("");
+  const [completeLoading, setCompleteLoading] = useState(false);
 
   useEffect(() => {
     if (!id) {
@@ -86,8 +88,34 @@ export default function JobDetail() {
     }
   }
 
+  async function handleMarkComplete() {
+    if (!id || !job) return;
+    setCompleteLoading(true);
+    try {
+      await markJobComplete(id);
+      setJob({ ...job, status: "completed" });
+      Alert.alert(
+        "Job completed",
+        "The customer will be notified to pay for the job.",
+        [{ text: "OK" }],
+      );
+    } catch (e) {
+      Alert.alert(
+        "Error",
+        e instanceof Error ? e.message : "Could not mark job complete.",
+      );
+    } finally {
+      setCompleteLoading(false);
+    }
+  }
+
   if (isChecking) {
-    return <LoadingScreen message="Verifying authentication..." />;
+    return (
+      <LoadingScreen
+        onBack={() => goBack(router)}
+        message="Verifying authentication..."
+      />
+    );
   }
 
   if (loading) {
@@ -190,13 +218,39 @@ export default function JobDetail() {
                   : `Your quote of $${myApplication.proposedPrice.toFixed(2)} has been sent. The customer will review it and get in touch.`}
               </Text>
               {myApplication.status === "accepted" && id ? (
-                <TouchableOpacity
-                  onPress={() => router.push(routes.worker.jobChat(id))}
-                  className="flex-row items-center justify-center gap-2 mt-4 pt-4 border-t border-green-200"
-                >
-                  <Ionicons name="chatbubble-ellipses-outline" size={20} color="#059669" />
-                  <Text className="text-base font-semibold text-green-800">Open chat</Text>
-                </TouchableOpacity>
+                <>
+                  <TouchableOpacity
+                    onPress={() => router.push(routes.worker.jobChat(id))}
+                    className="flex-row items-center justify-center gap-2 mt-4 pt-4 border-t border-green-200 py-3"
+                  >
+                    <Ionicons
+                      name="chatbubble-ellipses-outline"
+                      size={20}
+                      color="#059669"
+                    />
+                    <Text className="text-base font-semibold text-green-800">
+                      Open chat
+                    </Text>
+                  </TouchableOpacity>
+                  {job.status === "assigned" ? (
+                    <PrimaryButton
+                      onPress={handleMarkComplete}
+                      loading={completeLoading}
+                      disabled={completeLoading}
+                      size="sm"
+                      className="mt-3"
+                    >
+                      Mark complete
+                    </PrimaryButton>
+                  ) : null}
+                  {job.status === "completed" ? (
+                    <View className="mt-3 py-2 px-3 bg-green-100 rounded-lg">
+                      <Text className="text-sm font-medium text-green-800">
+                        Job completed. Waiting for customer payment.
+                      </Text>
+                    </View>
+                  ) : null}
+                </>
               ) : null}
             </Card>
           </>

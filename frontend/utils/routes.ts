@@ -10,6 +10,7 @@ export const routes = {
     profile: "/customer/profile" as const,
     job: (id: string) => `/customer/job/${id}` as const,
     jobChat: (id: string) => `/customer/job/${id}/chat` as const,
+    jobPay: (id: string) => `/customer/job/${id}/pay` as const,
   },
   worker: {
     dashboard: "/worker/dashboard" as const,

@@ -38,6 +38,7 @@ func RegisterRoutes(server *gin.Engine){
 	protectedWorkerRoute.GET("/jobs/applied", handlers.GetMyApplications)
 	protectedWorkerRoute.GET("/jobs/:id", handlers.GetJobByID)
 	protectedWorkerRoute.POST("/jobs/:id/apply", handlers.ApplyForJob)
+	protectedWorkerRoute.PUT("/jobs/:id/complete", handlers.CompleteJob)
 	protectedWorkerRoute.GET("/jobs/:id/messages", handlers.GetMessages)
 	protectedWorkerRoute.POST("/jobs/:id/messages", handlers.SendMessage)
 
